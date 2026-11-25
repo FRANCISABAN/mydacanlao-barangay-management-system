@@ -22,3 +22,17 @@ export const countApprovedApplications = async () => {
   const [rows] = await pool.query("SELECT COUNT(*) AS total FROM application WHERE status = 'Approved'");
   return rows[0].total;
 };
+
+// the name of the saved file, only used when the SK opens a PDF
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+export const findDocumentFile = async (id) => {
+  const [rows] = await pool.query('SELECT file_name, file_path FROM application_document WHERE id = ?', [id]);
+  return rows;
+};
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+// WBS 3.1.3 [Backend] Manage scholarship requirement resubmissions
+export const updateDocumentReview = async (id, status, note) => {
+  const [result] = await pool.query('UPDATE application_document SET status = ?, note = ? WHERE id = ?', [status, note, id]);
+  return result.affectedRows;
+};

@@ -8,4 +8,11 @@ const skRoutes = express.Router();
 skRoutes.get('/applications', skController.getApplications);
 skRoutes.get('/applications/approved-count', skController.getApprovedCount);
 
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+skRoutes.get('/documents/:id/file', skController.getDocumentFile);
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+// WBS 3.1.3 [Backend] Manage scholarship requirement resubmissions
+skRoutes.put('/applications/:appId/documents', skController.reviewDocument);
+
 export default skRoutes;
