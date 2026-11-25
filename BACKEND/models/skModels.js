@@ -1,0 +1,24 @@
+import pool from '../config/db.js';
+
+/* ===== applications of the students (the SK reviews them) ===== */
+// the file itself is in the uploads folder, the database only has its name (file_path).
+const DOC_COLS = "id, application_id, requirement, file_name, file_path, student_name, status, note, UNIX_TIMESTAMP(uploaded_at) * 1000 AS uploaded_at";
+
+// WBS 3.1.1 [Backend] Display, search, and view scholarship applications
+export const fetchAllApplications = async () => {
+  const [rows] = await pool.query(
+    `SELECT a.id, a.student_id, s.email AS uid, a.scholarship_id, a.status, a.note, a.submitted_at, a.rejected_at
+     FROM application a JOIN student s ON s.id = a.student_id ORDER BY a.id`);
+  return rows;
+};
+
+export const fetchDocumentsOf = async (applicationIds) => {
+  if (applicationIds.length === 0) return [];
+  const [rows] = await pool.query(`SELECT ${DOC_COLS} FROM application_document WHERE application_id IN (?)`, [applicationIds]);
+  return rows;
+};
+
+export const countApprovedApplications = async () => {
+  const [rows] = await pool.query("SELECT COUNT(*) AS total FROM application WHERE status = 'Approved'");
+  return rows[0].total;
+};
