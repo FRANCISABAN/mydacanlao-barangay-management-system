@@ -29,6 +29,80 @@ const ADDRESS_ERROR =
     'Address must include the barangay, municipality and province, and must be in Dacanlao, City of Calaca, Batangas.';
 
 
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
+/* ===== uploaded files (the SK site reads them too) ===== */
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+// the browser sends the file as text (base64), so 4,200,000 characters is about a 3 MB file
+const MAX_FILE_MB = 3;
+const MAX_DATA_CHARS = 4200000;
+
+// the files are saved in the BACKEND/uploads folder. The database only keeps the file name.
+const UPLOAD_DIR = fileURLToPath(new URL('../uploads/', import.meta.url));
+
+const EXTENSION_OF = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf' };
+const TYPE_OF = { '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
+
+// the file type is found from the file extension (example: app3_171.jpg -> image/jpeg)
+const typeOfFile = (fileName) => {
+    return TYPE_OF[path.extname(fileName || '').toLowerCase()] || '';
+}
+
+// dataUri looks like data:image/png;base64,.... Gives back the name of the saved file.
+const saveUploadedFile = (applicationId, dataUri, type) => {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    const name = `app${applicationId}_${Date.now()}_${Math.floor(Math.random() * 1e6)}${EXTENSION_OF[type]}`;
+    const base64 = dataUri.slice(dataUri.indexOf(',') + 1);
+    fs.writeFileSync(path.join(UPLOAD_DIR, name), Buffer.from(base64, 'base64'));
+    return name;
+}
+
+// gives the file back as data:<type>;base64,... (empty text when the file is missing)
+export const readFileAsDataUri = (fileName) => {
+    if (!fileName) return '';
+    const file = path.join(UPLOAD_DIR, path.basename(fileName));
+    if (!fs.existsSync(file)) return '';
+    return `data:${typeOfFile(fileName)};base64,${fs.readFileSync(file).toString('base64')}`;
+}
+
+// used when a student replaces a file
+const deleteUploadedFile = (fileName) => {
+    if (!fileName) return;
+    try {
+        fs.unlinkSync(path.join(UPLOAD_DIR, path.basename(fileName)));
+    } catch {
+        // already gone, nothing to do
+    }
+}
+
+// Makes an uploaded image smaller before it is saved: at most 900 px on the longest side, saved as JPEG.
+// It gets the image as a data URL and gives back { type, data }. A PDF never comes here.
+// Needs the "sharp" package (run npm install in BACKEND).
+const shrinkImage = async (dataUrl, type) => {
+    let sharp;
+    try {
+        sharp = (await import('sharp')).default;
+    } catch {
+        // not installed yet: keep the image that the frontend already made smaller, so uploads still work
+        console.warn('The "sharp" package is not installed, so the backend did not shrink the image. Open BACKEND and run: npm install');
+        return { type, data: dataUrl };
+    }
+
+    try {
+        const input = Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
+        const output = await sharp(input)
+            .rotate()
+            .resize({ width: 900, height: 900, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 72 })
+            .toBuffer();
+
+        return { type: 'image/jpeg', data: 'data:image/jpeg;base64,' + output.toString('base64') };
+    } catch {
+        throw new ValidationError('The image could not be read. Try another file.', 400);
+    }
+}
+
+
 // WBS 4.1.1 [Backend] Implement student account registration
 export const requestRegistrationOTP = async (email) => {
     const cleaned = String(email || '').trim().toLowerCase();
@@ -167,3 +241,61 @@ export const applyForScholarship = async (studentId, scholarshipId) => {
     }
 }
 
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
+export const uploadDocument = async (studentId, applicationId, file) => {
+    const app = await ownApplication(studentId, applicationId);
+    const { requirement, file_name, file_type, file_data } = file;
+
+    if (!requirement || !file_name || !file_type || !file_data) {
+        throw new ValidationError('Requirement, file name, file type and file are required!', 400);
+    }
+    if (!ALLOWED_TYPES.includes(file_type)) {
+        throw new ValidationError('Only JPG, PNG, WEBP images or PDF files are allowed.', 400);
+    }
+    if (typeof file_data !== 'string' || !file_data.startsWith(`data:${file_type};base64,`)) {
+        throw new ValidationError('The file is not valid.', 400);
+    }
+    if (file_data.length > MAX_DATA_CHARS) {
+        throw new ValidationError(`The file is too big. The maximum is ${MAX_FILE_MB} MB.`, 400);
+    }
+
+    const scholarship = await scholarshipOf(app.scholarship_id);
+    if (!requirementsOf(scholarship).includes(requirement)) {
+        throw new ValidationError('That document is not required for this scholarship.', 400);
+    }
+
+    const existing = (await studentModels.findDocument(app.id, requirement))[0];
+    if (existing && existing.status === 'Valid') {
+        throw new ValidationError('This document is already validated and locked.', 409);
+    }
+    const needsRevision = existing && existing.status === 'Revise';
+    if (app.status === 'Approved' && !needsRevision) {
+        throw new ValidationError('This application is already approved.', 409);
+    }
+
+    // images are made smaller here too (the frontend already shrinks them, but the backend does not trust it)
+    const saved = file_type.startsWith('image/') ? await shrinkImage(file_data, file_type) : { type: file_type, data: file_data };
+
+    // the file is saved in the uploads folder, the database only keeps its name and who sent it
+    const student = (await studentModels.findStudentById(app.student_id))[0];
+    const filePath = saveUploadedFile(app.id, saved.data, saved.type);
+    await studentModels.saveDocument({
+        application_id: app.id,
+        requirement,
+        file_name: String(file_name).slice(0, 255),
+        file_path: filePath,
+        student_name: student.name,
+        uploaded_at: Date.now(),
+    });
+    // the old file of this requirement is not needed anymore
+    if (existing) deleteUploadedFile(existing.file_path);
+
+    // a corrected document goes back to the SK for review
+    if (needsRevision && (app.status === 'Pending' || app.status === 'Approved')) {
+        await studentModels.updateApplication(app.id, { status: 'Under Review' });
+    }
+
+    return { needsRevision: Boolean(needsRevision) };
+}
+
+// submit = Draft -> Pending. Only when every document is uploaded.

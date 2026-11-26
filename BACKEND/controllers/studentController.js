@@ -133,6 +133,18 @@ export const applyForScholarship = async (req, res) => {
     }
 }
 
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
+export const uploadDocument = async (req, res) => {
+    const { requirement, file_name, file_type, file_data } = req.body;
+
+    try {
+        const result = await studentServices.uploadDocument(req.params.id, req.params.appId, { requirement, file_name, file_type, file_data });
+        res.status(200).json({ success: true, message: result });
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
 // WBS 4.1.2 [Backend] Implement student login and logout
 // Logout: the token of the student stops working.
 export const logout = (req, res) => {

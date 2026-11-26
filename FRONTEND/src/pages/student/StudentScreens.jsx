@@ -371,3 +371,30 @@ function StudentPage({ me, scholarships, apps, notifications, notify, showToast,
         showToast('Draft started. Upload your documents.');
     }
 
+    // WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+    const handleUpload = async (app, req, file) => {
+        const problem = checkFile(file);
+        if (problem) {
+            showToast(problem);
+            return;
+        }
+
+        const wasRevise = app.reqs[req]?.status === 'Revise';
+
+        try {
+            const { type, data } = await readUpload(file);
+            await call(`/student/${me.id}/applications/${app.id}/documents`, send('PUT', {
+                requirement: req,
+                file_name: file.name,
+                file_type: type,
+                file_data: data,
+            }));
+        } catch (e) {
+            showToast(e.message);
+            return;
+        }
+
+        await loadRemote();
+        showToast(wasRevise ? `${req} changed. Sent back to the SK for review.` : `${req} uploaded`);
+    }
+

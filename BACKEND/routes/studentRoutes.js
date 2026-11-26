@@ -20,3 +20,5 @@ studentRoutes.delete('/:id', requireStudent, studentController.deleteStudent);
 studentRoutes.get('/:id/applications', requireStudent, studentController.getApplications);
 // WBS 4.2.1 [Backend] View available scholarships and create applications
 studentRoutes.post('/:id/applications', requireStudent, studentController.applyForScholarship);
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
+studentRoutes.put('/:id/applications/:appId/documents', requireStudent, studentController.uploadDocument);

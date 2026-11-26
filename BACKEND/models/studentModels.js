@@ -79,3 +79,30 @@ export const insertApplication = async (studentId, scholarshipId) => {
 };
 
 // only these columns can be changed
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
+export const findDocument = async (applicationId, requirement) => {
+  const [rows] = await pool.query('SELECT id, status, file_path FROM application_document WHERE application_id = ? AND requirement = ?', [applicationId, requirement]);
+  return rows;
+};
+
+export const listUploadedRequirements = async (applicationId) => {
+  const [rows] = await pool.query('SELECT requirement FROM application_document WHERE application_id = ?', [applicationId]);
+  return rows.map((r) => r.requirement);
+};
+
+export const countDocumentsChangedSince = async (applicationId, time) => {
+  const [rows] = await pool.query('SELECT COUNT(*) AS total FROM application_document WHERE application_id = ? AND UNIX_TIMESTAMP(uploaded_at) >= FLOOR(? / 1000)', [applicationId, time]);
+  return rows[0].total;
+};
+
+// a new file, or a replacement of the old file for the same requirement (it goes back to "Uploaded")
+export const saveDocument = async (doc) => {
+  await pool.query(
+    `INSERT INTO application_document (application_id, requirement, file_name, file_path, student_name, status, note, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, 'Uploaded', '', FROM_UNIXTIME(? / 1000))
+     ON DUPLICATE KEY UPDATE file_name = VALUES(file_name), file_path = VALUES(file_path), student_name = VALUES(student_name),
+                             status = 'Uploaded', note = '', uploaded_at = VALUES(uploaded_at)`,
+    [doc.application_id, doc.requirement, doc.file_name, doc.file_path, doc.student_name, doc.uploaded_at]
+  );
+};
+
