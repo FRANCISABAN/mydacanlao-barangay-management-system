@@ -27,3 +27,26 @@ export const getApprovedCount = async (req, res) => {
         fail(res, e);
     }
 }
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+export const getDocumentFile = async (req, res) => {
+    try {
+        const file = await skServices.fetchDocumentFile(req.params.id);
+        res.status(200).json({ success: true, message: file });
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+// WBS 3.1.3 [Backend] Manage scholarship requirement resubmissions
+export const reviewDocument = async (req, res) => {
+    const { requirement, status, note } = req.body;
+
+    try {
+        const result = await skServices.reviewDocument(req.params.appId, { requirement, status, note });
+        res.status(200).json({ success: true, message: result });
+    } catch (e) {
+        fail(res, e);
+    }
+}

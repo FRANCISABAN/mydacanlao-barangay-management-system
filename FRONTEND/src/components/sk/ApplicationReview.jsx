@@ -5,6 +5,185 @@ import { useState } from 'react';
 import { SKStatusChip, SKStatCard } from './SKSidebarAndUI';
 import { initials, requirementsOf, studentOf } from './skFunctions';
 
+// Icon para sa uri ng file.
+const SKFileTag = ({ upload }) => {
+  if (!upload) return <span className="ft none">-</span>;
+
+  const ext = ((upload.name || "").split(".").pop() || "file").slice(0, 4);
+
+  return (
+    <span className={`ft ${/pdf/i.test(ext) ? "pdf" : ""}`}>{ext}</span>
+  )
+}
+
+// Label ng document status.
+const LABELS = { Valid: "Valid", Revise: "Needs revision" };
+
+const SKDocumentChip = ({ upload }) => {
+  if (!upload) return null;
+
+  return (
+    <span className={`chip ${upload.status}`}>{LABELS[upload.status] || "Uploaded"}</span>
+  )
+}
+
+// Bilang ng validated documents.
+// WBS 3.1.2 [Frontend] Review and validate scholarship requirements
+const SKRequirementBar = ({ app, reqs }) => {
+  return (
+    <div className="seggy">
+      {reqs.map((r) => {
+        const upload = app.reqs[r];
+        const state = upload ? (upload.status === "Valid" ? "v" : upload.status === "Revise" ? "r" : "up") : "";
+
+        return <span key={r} className={state} title={r}></span>
+      })}
+    </div>
+  )
+}
+
+// Isang document para sa pag-review.
+// WBS 3.1.2 [Frontend] Review and validate scholarship requirements
+// WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
+const SKReviewRow = ({ req, upload, rejecting, note, onNote, onZoom, onValid, onOpenReject, onCancelReject, onSendReject }) => {
+  if (!upload) {
+    return (
+      <div className="req">
+        <div><strong>{req}</strong><br /><span className="mut">Not uploaded yet</span></div>
+        <div><SKStatusChip status="Missing" /></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="req">
+      <div className="rd">
+        <SKFileTag upload={upload} />
+        <div>
+          <strong>{req}</strong><br />
+          <span className="mut">{upload.name}</span>
+          {upload.note && <div className="cmt">SK comment: {upload.note}</div>}
+        </div>
+      </div>
+      <div><SKDocumentChip upload={upload} /></div>
+
+      <div className="acts">
+        <button className="sm" onClick={onZoom}>View</button>
+        <button className="ok sm" onClick={onValid}>Mark valid</button>
+        <button className="no sm" onClick={onOpenReject}>Reject</button>
+      </div>
+
+      {rejecting && (
+        <div className="rjbox">
+          <label htmlFor="note-req">Why is it rejected?</label>
+          <textarea
+            id="note-req"
+            rows="2"
+            autoFocus
+            value={note}
+            onChange={(e) => onNote(e.target.value)}
+            placeholder="Example: The photo is blurry, please upload a clearer copy."
+          />
+          <div className="acts">
+            <button className="no sm" onClick={onSendReject}>Send rejection</button>
+            <button className="sm" onClick={onCancelReject}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Buttons para i-check, approve o reject.
+// rejecting = null (nothing open) | "app" (reject the whole application) | the name of one document
+// WBS 3.1.2 [Frontend] Review and validate scholarship requirements
+// WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
+// WBS 3.1.4 [Frontend] Manage scholarship application statuses and decisions
+const SKReviewPanel = ({ app, student, scholarshipTitle, reqs, showToast, onClose, onZoom, onValid, onRevise, onReject, onApprove }) => {
+  const [rejecting, setRejecting] = useState(null);
+  const [note, setNote] = useState('');
+
+  const openReject = (target) => {
+    setRejecting(target);
+    setNote('');
+  }
+
+  const sendReject = (target) => {
+    if (!note.trim()) {
+      showToast('Write a comment first so the student knows why.');
+      return;
+    }
+    if (target === 'app') onReject(note.trim());
+    else onRevise(target, note.trim());
+    setRejecting(null);
+  }
+
+  return (
+    <>
+      <div className="row">
+        <div className="who2">
+          <span className="av lg">{initials(student.name)}</span>
+          <div>
+            <h2 style={{ fontSize: 26 }}>{student.name}</h2>
+            <span className="mut">
+              {student.email}
+              {student.address && <><br />{student.address}</>}
+              <br />{scholarshipTitle}
+            </span>
+          </div>
+        </div>
+        <SKStatusChip status={app.status} />
+      </div>
+
+      <SKRequirementBar app={app} reqs={reqs} />
+
+      <div className="card" style={{ marginTop: 12 }}>
+        {reqs.map((r) => (
+          <SKReviewRow
+            key={r}
+            req={r}
+            upload={app.reqs[r]}
+            rejecting={rejecting === r}
+            note={note}
+            onNote={setNote}
+            onZoom={() => onZoom(r)}
+            onValid={() => onValid(r)}
+            onOpenReject={() => openReject(r)}
+            onCancelReject={() => setRejecting(null)}
+            onSendReject={() => sendReject(r)}
+          />
+        ))}
+      </div>
+
+      {rejecting === 'app' && (
+        <div className="rjbox card">
+          <label htmlFor="note-app">Why is the application rejected?</label>
+          <textarea
+            id="note-app"
+            rows="2"
+            autoFocus
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Example: Incomplete documents. Please submit all requirements."
+          />
+          <div className="acts">
+            <button className="no sm" onClick={() => sendReject('app')}>Send rejection</button>
+            <button className="sm" onClick={() => setRejecting(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="row">
+        <button onClick={onClose}>Close</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="no" onClick={() => openReject('app')}>Reject</button>
+          <button className="ok" onClick={onApprove}>Approve application</button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Side panel para sa review.
 // WBS 3.1.1 [Frontend] Display, search, and view scholarship applications
 const SKReviewDrawer = ({ onClose, children }) => {
@@ -14,6 +193,26 @@ const SKReviewDrawer = ({ onClose, children }) => {
       <aside className="drawer" role="dialog" aria-label="Review application">
         {children}
       </aside>
+    </>
+  )
+}
+
+// Malaking preview ng document.
+// WBS 3.1.2 [Frontend] Review and validate scholarship requirements
+const SKLightbox = ({ req, upload, studentName, onClose }) => {
+  return (
+    <>
+      <div className="scrim" style={{ zIndex: 40 }} onClick={onClose}></div>
+      <div className="lbx" role="dialog" aria-label={req}>
+        <img src={upload.img} alt={`${req} from ${studentName}`} />
+        <div className="row" style={{ color: "#fff" }}>
+          <span>
+            <strong>{req}</strong> · {studentName}
+            {upload.note && <><br /><span style={{ color: "#ff9aa5" }}>SK comment: {upload.note}</span></>}
+          </span>
+          <button onClick={onClose}>Close</button>
+        </div>
+      </div>
     </>
   )
 }
@@ -150,3 +349,6 @@ const SKStudentList = ({ students, apps, scholarships, query, onQuery }) => {
     </>
   )
 }
+
+// Ginagamit ng ibang page ang mga component na ito.
+export { SKFileTag, SKDocumentChip, SKRequirementBar, SKReviewRow, SKReviewPanel, SKReviewDrawer, SKLightbox, SKApplicationList, SKStudentList };

@@ -14,3 +14,52 @@ export const fetchApplications = async () => {
 export const countApproved = async () => {
     return await skModels.countApprovedApplications();
 }
+
+// the SK can only review an application that the student already submitted
+const submittedApplication = async (applicationId) => {
+    const rows = await skModels.findApplicationById(toId(applicationId, 'application id'));
+    if (rows.length === 0) {
+        throw new ValidationError('Application not found.', 404);
+    }
+    if (rows[0].status === 'Draft') {
+        throw new ValidationError('The student has not submitted this application yet.', 409);
+    }
+    return rows[0];
+}
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+export const fetchDocumentFile = async (documentId) => {
+    const rows = await skModels.findDocumentFile(toId(documentId, 'document id'));
+    const file_data = rows.length > 0 ? readFileAsDataUri(rows[0].file_path) : '';
+    if (!file_data) {
+        throw new ValidationError('File not found.', 404);
+    }
+    return { file_name: rows[0].file_name, file_data };
+}
+
+// WBS 3.1.2 [Backend] Review and validate scholarship requirements
+// WBS 3.1.3 [Backend] Manage scholarship requirement resubmissions
+// status is "Valid" or "Revise" (a comment is required for Revise)
+export const reviewDocument = async (applicationId, review) => {
+    const app = await submittedApplication(applicationId);
+    const note = String(review.note || '').trim();
+
+    if (!['Valid', 'Revise'].includes(review.status)) {
+        throw new ValidationError('Status must be Valid or Revise.', 400);
+    }
+    if (review.status === 'Revise' && !note) {
+        throw new ValidationError('Write a comment first so the student knows why.', 400);
+    }
+
+    const doc = (await skModels.findDocument(app.id, review.requirement))[0];
+    if (!doc) {
+        throw new ValidationError('The student has not uploaded that document.', 404);
+    }
+
+    await skModels.updateDocumentReview(doc.id, review.status, review.status === 'Valid' ? '' : note);
+
+    if (app.status === 'Pending') {
+        await skModels.updateApplication(app.id, { status: 'Under Review' });
+    }
+    return true;
+}
