@@ -398,3 +398,62 @@ function StudentPage({ me, scholarships, apps, notifications, notify, showToast,
         showToast(wasRevise ? `${req} changed. Sent back to the SK for review.` : `${req} uploaded`);
     }
 
+    // WBS 4.3.2 [Frontend] Submit and resubmit scholarship applications
+    const handleSubmit = async (app) => {
+        if (!requirementsOf(app, scholarships).every((r) => app.reqs[r])) return;
+
+        try {
+            await call(`/student/${me.id}/applications/${app.id}/submit`, send('POST', {}));
+        } catch (e) {
+            showToast(e.message);
+            return;
+        }
+
+        await loadRemote();
+        notify([me.email], 'Submission received', `Your application for ${titleOf(app)} was submitted. The SK will review your documents.`);
+    }
+
+    const handleResubmit = async (app) => {
+        try {
+            await call(`/student/${me.id}/applications/${app.id}/resubmit`, send('POST', {}));
+        } catch (e) {
+            showToast(e.message);
+            return;
+        }
+
+        await loadRemote();
+        notify([me.email], 'Application resubmitted', `Your application for ${titleOf(app)} was resubmitted. The SK will review it again.`);
+    }
+
+    return (
+        <div className="page role-st">
+
+            <StudentHeader me={me} tab={tab} onTab={changeTab} onLogout={onLogout} unread={unread} />
+
+            {tab === 'home' && (
+                <StudentBanner me={me} hasApps={myApps.length > 0} valid={valid} total={total} />
+            )}
+
+            <main className="view enter" key={tab}>
+                {tab === 'home' && (
+                    <StudentHome me={me} apps={myApps} valid={valid} scholarships={scholarships} onTab={changeTab} />
+                )}
+                {tab === 'notif' && <StudentNotifications notifications={notifications} />}
+                {tab === 'sub' && (
+                    <StudentSubmission
+                        scholarships={scholarships}
+                        apps={myApps}
+                        onApply={handleApply}
+                        onUpload={handleUpload}
+                        onSubmit={handleSubmit}
+                        onResubmit={handleResubmit}
+                    />
+                )}
+            </main>
+
+        </div>
+    )
+}
+
+// Ginagamit ng ibang page ang mga component na ito.
+export { StudentLandingPage, StudentLoginPage, StudentPage };

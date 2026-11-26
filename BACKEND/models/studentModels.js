@@ -79,6 +79,19 @@ export const insertApplication = async (studentId, scholarshipId) => {
 };
 
 // only these columns can be changed
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
+export const updateApplication = async (id, changes) => {
+  const allowed = ['status', 'note', 'submitted_at'];
+  const keys = Object.keys(changes).filter((k) => allowed.includes(k));
+  if (keys.length === 0) return 0;
+
+  const [result] = await pool.query(
+    `UPDATE application SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`,
+    [...keys.map((k) => changes[k]), id]
+  );
+  return result.affectedRows;
+};
+
 // WBS 4.3.1 [Backend] Upload and manage scholarship requirements
 export const findDocument = async (applicationId, requirement) => {
   const [rows] = await pool.query('SELECT id, status, file_path FROM application_document WHERE application_id = ? AND requirement = ?', [applicationId, requirement]);

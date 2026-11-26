@@ -22,3 +22,8 @@ studentRoutes.get('/:id/applications', requireStudent, studentController.getAppl
 studentRoutes.post('/:id/applications', requireStudent, studentController.applyForScholarship);
 // WBS 4.3.1 [Backend] Upload and manage scholarship requirements
 studentRoutes.put('/:id/applications/:appId/documents', requireStudent, studentController.uploadDocument);
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
+studentRoutes.post('/:id/applications/:appId/submit', requireStudent, studentController.submitApplication);
+studentRoutes.post('/:id/applications/:appId/resubmit', requireStudent, studentController.resubmitApplication);
+
+// in-system notifications of the student

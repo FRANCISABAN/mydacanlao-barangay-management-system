@@ -145,6 +145,26 @@ export const uploadDocument = async (req, res) => {
     }
 }
 
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
+export const submitApplication = async (req, res) => {
+    try {
+        const result = await studentServices.submitApplication(req.params.id, req.params.appId);
+        res.status(200).json({ success: true, message: result });
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
+export const resubmitApplication = async (req, res) => {
+    try {
+        const result = await studentServices.resubmitApplication(req.params.id, req.params.appId);
+        res.status(200).json({ success: true, message: result });
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
 // WBS 4.1.2 [Backend] Implement student login and logout
 // Logout: the token of the student stops working.
 export const logout = (req, res) => {
