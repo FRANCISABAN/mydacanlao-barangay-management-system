@@ -171,4 +171,20 @@ export const logout = (req, res) => {
     endSession(tokenOf(req));
     res.status(200).json({ success: true });
 }
+// WBS 4.4.1 [Backend] Display scholarship notifications and email updates
+export const getNotifications = async (req, res) => {
+    try {
+        res.status(200).json(await studentServices.fetchNotifications(req.params.id));
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
+export const readNotifications = async (req, res) => {
+    try {
+        res.status(200).json(await studentServices.readNotifications(req.params.id));
+    } catch (e) {
+        fail(res, e);
+    }
+}
 
