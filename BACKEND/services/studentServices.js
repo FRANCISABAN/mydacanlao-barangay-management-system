@@ -299,3 +299,38 @@ export const uploadDocument = async (studentId, applicationId, file) => {
 }
 
 // submit = Draft -> Pending. Only when every document is uploaded.
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
+export const submitApplication = async (studentId, applicationId) => {
+    const app = await ownApplication(studentId, applicationId);
+
+    if (app.status !== 'Draft') {
+        throw new ValidationError('Only a draft can be submitted.', 409);
+    }
+
+    const scholarship = await scholarshipOf(app.scholarship_id);
+    const uploaded = await studentModels.listUploadedRequirements(app.id);
+    const missing = requirementsOf(scholarship).filter((r) => !uploaded.includes(r));
+    if (missing.length > 0) {
+        throw new ValidationError(`Upload every document first. Missing: ${missing.join(', ')}`, 400);
+    }
+
+    return await studentModels.updateApplication(app.id, { status: 'Pending', submitted_at: Date.now() });
+}
+
+// resubmit = Rejected -> Pending. Only when at least one document was changed after the rejection.
+export const resubmitApplication = async (studentId, applicationId) => {
+    const app = await ownApplication(studentId, applicationId);
+
+    if (app.status !== 'Rejected') {
+        throw new ValidationError('Only a rejected application can be resubmitted.', 409);
+    }
+
+    const changed = await studentModels.countDocumentsChangedSince(app.id, app.rejected_at || 0);
+    if (changed === 0) {
+        throw new ValidationError('Change at least one document before you resubmit.', 400);
+    }
+
+    return await studentModels.updateApplication(app.id, { status: 'Pending', note: '' });
+}
+
+
