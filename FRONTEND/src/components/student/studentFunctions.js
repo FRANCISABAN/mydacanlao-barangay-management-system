@@ -168,3 +168,55 @@ export const isValidAddress = (address) => {
 }
 
 /* ===== uploaded files ===== */
+// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+export const MAX_FILE_MB = 3;
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+// what the upload buttons accept (the backend checks the type and size again)
+export const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
+
+// returns the problem as text, or '' when the file is fine
+// Tinitingnan ang size at uri ng file.
+export const checkFile = (file) => {
+    if (!IMAGE_TYPES.includes(file.type) && file.type !== 'application/pdf') {
+        return 'Only JPG, PNG, WEBP images or PDF files are allowed.';
+    }
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        return `The file is too big. The maximum is ${MAX_FILE_MB} MB.`;
+    }
+    return '';
+}
+
+// Gives back { type, data } where data is the file as text (a data URL) that the backend saves.
+// Images are shrunk first. A PDF is sent as it is, so the SK can open it.
+// Binabasa at inaayos ang ia-upload na file.
+export const readUpload = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read that file.'));
+        reader.onload = () => {
+            if (file.type === 'application/pdf') {
+                resolve({ type: 'application/pdf', data: reader.result });
+                return;
+            }
+
+            const image = new Image();
+            image.onload = () => {
+                const scale = Math.min(1, 900 / Math.max(image.width, image.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(image.width * scale);
+                canvas.height = Math.round(image.height * scale);
+                canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+                resolve({ type: 'image/jpeg', data: canvas.toDataURL('image/jpeg', 0.72) });
+            };
+            image.onerror = () => reject(new Error('Could not read that image.'));
+            image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// --- studentCommonNotify ---
+// Emails students through the BACKEND. Used by the student site.
+
+// Gumagawa at nagpapadala ng email notification.

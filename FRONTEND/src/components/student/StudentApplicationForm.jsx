@@ -1,3 +1,90 @@
+// STUDENT - SCHOLARSHIP AT UPLOAD
+// Magkakasama rito ang mga connected na bahagi ng page.
+
+import { ACCEPT, deadlineClass, deadlineText, isOpen, isListed, requirementsOf } from './studentFunctions';
+
+// Icon para sa uri ng file.
+// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+const StudentFileTag = ({ upload }) => {
+  if (!upload) return <span className="ft none">-</span>;
+
+  const ext = ((upload.name || "").split(".").pop() || "file").slice(0, 4);
+
+  return (
+    <span className={`ft ${/pdf/i.test(ext) ? "pdf" : ""}`}>{ext}</span>
+  )
+}
+
+// Label ng document status.
+const LABELS = { Valid: "Valid", Revise: "Needs revision" };
+
+const StudentDocumentChip = ({ upload }) => {
+  if (!upload) return null;
+
+  return (
+    <span className={`chip ${upload.status}`}>{LABELS[upload.status] || "Uploaded"}</span>
+  )
+}
+
+// Label ng application status.
+// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentRequirementBar = ({ app, reqs }) => {
+  return (
+    <div className="seggy">
+      {reqs.map((r) => {
+        const upload = app.reqs[r];
+        const state = upload ? (upload.status === "Valid" ? "v" : upload.status === "Revise" ? "r" : "up") : "";
+
+        return <span key={r} className={state} title={r}></span>
+      })}
+    </div>
+  )
+}
+
+// Button para mag-upload o magpalit ng file.
+// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+const StudentRequirementUpload = ({ req, upload, canEdit, onUpload }) => {
+  const needsRevision = upload?.status === "Revise";
+  const locked = upload?.status === "Valid" || (!canEdit && !needsRevision);
+
+  const handleChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    onUpload(req, file);
+    e.target.value = "";
+  }
+
+  return (
+    <div className={`req ${needsRevision ? "rev" : ""}`}>
+      <div className="rd">
+        <StudentFileTag upload={upload} />
+        <div>
+          <strong>{req}</strong><br />
+          <span className="mut">{upload ? upload.name : "Not uploaded"}</span>
+          {upload?.img && <img className="thumb" src={upload.img} alt={req} />}
+          {upload?.note && <div className="cmt">SK comment: {upload.note}</div>}
+          {needsRevision && (
+            <div className="mut" style={{ marginTop: 6 }}>
+              Choose Change file to upload a corrected copy. It goes back to the SK for review.
+            </div>
+          )}
+        </div>
+      </div>
+      <div>
+        <StudentDocumentChip upload={upload} />
+        {!locked && (
+          <label className={`drop ${needsRevision ? "hot" : ""}`}>
+            {upload ? (needsRevision ? "Change file" : "Replace") : "Upload"}
+            <input type="file" accept={ACCEPT} onChange={handleChange} aria-label={`Upload ${req}`} />
+          </label>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Scholarship card at application form.
 // WBS 4.2.1 [Frontend] View available scholarships and create applications
 // WBS 4.3.2 [Frontend] Submit and resubmit scholarship applications
 // WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
