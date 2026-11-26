@@ -5,6 +5,14 @@ import { useEffect } from 'react';
 import { initials, greeting } from './skFunctions';
 import skLogo from '../../assets/sk-logo.png';
 
+// Label ng application status.
+// WBS 3.1.4 [Frontend] Manage scholarship application statuses and decisions
+const SKStatusChip = ({ status }) => {
+  return (
+    <span className={`chip ${status}`}>{status}</span>
+  )
+}
+
 // Card para sa bilang ng records.
 // WBS 3.1.1 [Frontend] Display, search, and view scholarship applications
 const SKStatCard = ({ value, label, color, icon }) => {

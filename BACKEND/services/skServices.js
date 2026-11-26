@@ -76,3 +76,25 @@ export const rejectApplication = async (applicationId, noteText) => {
 
     return await skModels.updateApplication(app.id, { status: 'Rejected', note, rejected_at: Date.now() });
 }
+
+// WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
+// approve = every document is uploaded and none needs revision
+export const approveApplication = async (applicationId) => {
+    const app = await submittedApplication(applicationId);
+
+    const scholarship = (await skModels.findScholarshipById(app.scholarship_id))[0];
+    if (!scholarship) {
+        throw new ValidationError('Scholarship does not exist!', 404);
+    }
+
+    const docs = await skModels.fetchDocumentsOf([app.id]);
+    const notReady = requirementsOf({ requirements: scholarship.requirements }).some((r) => {
+        const doc = docs.find((d) => d.requirement === r);
+        return !doc || doc.status === 'Revise';
+    });
+    if (notReady) {
+        throw new ValidationError('Cannot approve yet. A document is missing or needs revision.', 400);
+    }
+
+    return await skModels.updateApplication(app.id, { status: 'Approved' });
+}

@@ -36,3 +36,17 @@ export const updateDocumentReview = async (id, status, note) => {
   const [result] = await pool.query('UPDATE application_document SET status = ?, note = ? WHERE id = ?', [status, note, id]);
   return result.affectedRows;
 };
+
+// only these columns can be changed
+// WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
+export const updateApplication = async (id, changes) => {
+  const allowed = ['status', 'note', 'rejected_at'];
+  const keys = Object.keys(changes).filter((k) => allowed.includes(k));
+  if (keys.length === 0) return 0;
+
+  const [result] = await pool.query(
+    `UPDATE application SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`,
+    [...keys.map((k) => changes[k]), id]
+  );
+  return result.affectedRows;
+};

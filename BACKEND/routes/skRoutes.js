@@ -18,4 +18,7 @@ skRoutes.put('/applications/:appId/documents', skController.reviewDocument);
 // WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
 skRoutes.put('/applications/:appId/reject', skController.rejectApplication);
 
+// WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
+skRoutes.put('/applications/:appId/approve', skController.approveApplication);
+
 export default skRoutes;
