@@ -61,3 +61,13 @@ export const rejectApplication = async (req, res) => {
         fail(res, e);
     }
 }
+
+// WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
+export const approveApplication = async (req, res) => {
+    try {
+        const result = await skServices.approveApplication(req.params.appId);
+        res.status(200).json({ success: true, message: result });
+    } catch (e) {
+        fail(res, e);
+    }
+}

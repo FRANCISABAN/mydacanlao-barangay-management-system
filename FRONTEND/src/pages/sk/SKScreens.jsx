@@ -1,4 +1,4 @@
-    /* ===== reviewing an application (backend: /sk/applications) ===== */
+/* ===== reviewing an application (backend: /sk/applications) ===== */
     // saves the review in the backend, then loads the lists again. Gives back true when it worked.
     // WBS 3.1.2 [Frontend] Review and validate scholarship requirements
     const saveReview = async (path, body, method = 'PUT') => {
@@ -18,10 +18,27 @@
         emailWhenReviewed(app, req, 'Valid', '');
     }
 
-        // WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
+    // WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
     const handleRevise = async (app, req, note) => {
         if (!await saveReview(`/sk/applications/${app.id}/documents`, { requirement: req, status: 'Revise', note })) return;
         emailWhenReviewed(app, req, 'Revise', note);
+    }
+
+    // WBS 3.1.4 [Frontend] Manage scholarship application statuses and decisions
+    const handleReject = async (app, note) => {
+        if (!await saveReview(`/sk/applications/${app.id}/reject`, { note })) return;
+        notify([app.uid], 'Application not approved', `Your application for ${titleOf(app)} was not accepted. Reason: ${note}`);
+    }
+
+    const handleApprove = async (app) => {
+        if (requirementsOf(app, scholarships).some((r) => !app.reqs[r] || app.reqs[r].status === 'Revise')) {
+            showToast('Cannot approve yet. A document is missing or needs revision.');
+            return;
+        }
+
+        if (!await saveReview(`/sk/applications/${app.id}/approve`, {})) return;
+        setOpenAppId(null);
+        notify([app.uid], 'Application approved', `Congratulations! Your application for ${titleOf(app)} was accepted.`);
     }
 
     // an image opens in the viewer, a PDF opens in a new tab
