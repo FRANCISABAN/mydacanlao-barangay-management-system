@@ -64,6 +64,9 @@ function StudentApp() {
     loadRemote();
   }, [loadRemote]);
 
+  // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
+  const notify = (emails, subject, text) => notifyStudents(students, emails, subject, text, showToast);
+
   // WBS 4.1.1 [Frontend] Implement student account registration
   // WBS 4.1.2 [Frontend] Implement student login and logout
   const handleLoggedIn = (account, token) => {

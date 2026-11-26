@@ -220,3 +220,14 @@ export const readUpload = (file) => {
 // Emails students through the BACKEND. Used by the student site.
 
 // Gumagawa at nagpapadala ng email notification.
+// WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
+export const notifyStudents = async (students, emails, subject, text, showToast) => {
+    const messages = emails.map((to) => ({ to, name: studentOf(students, to).name, subject, text }));
+    if (!messages.length) return;
+
+    showToast('Saved. Sending email...');
+    const result = await sendEmails(messages);
+    showToast(result.ok
+        ? `Email sent to ${messages.length} student${messages.length > 1 ? 's' : ''}.`
+        : `Saved, but the email was not sent. ${result.error}`);
+}

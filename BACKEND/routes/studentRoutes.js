@@ -27,3 +27,8 @@ studentRoutes.post('/:id/applications/:appId/submit', requireStudent, studentCon
 studentRoutes.post('/:id/applications/:appId/resubmit', requireStudent, studentController.resubmitApplication);
 
 // in-system notifications of the student
+// WBS 4.4.1 [Backend] Display scholarship notifications and email updates
+studentRoutes.get('/:id/notifications', requireStudent, studentController.getNotifications);
+studentRoutes.put('/:id/notifications/read', requireStudent, studentController.readNotifications);
+
+export default studentRoutes;
