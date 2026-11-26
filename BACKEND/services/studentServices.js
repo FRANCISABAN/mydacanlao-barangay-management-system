@@ -74,3 +74,61 @@ export const createAccount = async (student) => {
     return publicStudent({ id: studentId, name: student.name, email: student.email, address });
 }
 
+// WBS 4.1.2 [Backend] Implement student login and logout
+export const login = async (student) => {
+    if (!student.email || !student.password) {
+        throw new ValidationError('Email and password are required!', 400);
+    }
+
+    const existing = await studentModels.findStudentByEmail(student.email);
+    if (existing.length === 0) {
+        throw new ValidationError('Wrong email or password.', 401);
+    }
+
+    const isCorrectPassword = await bcrypt.compare(student.password, existing[0].password);
+
+    if (!isCorrectPassword) {
+        throw new ValidationError('Wrong email or password.', 401);
+    }
+
+    return publicStudent(existing[0]);
+}
+
+export const updateStudent = async (student) => {
+    if (!student.name || !student.address) {
+        throw new ValidationError('Name and address are required!', 400);
+    }
+    if (!isValidAddress(student.address)) {
+        throw new ValidationError(ADDRESS_ERROR, 400);
+    }
+
+    const existing = await doesStudentExist({ id: student.id });
+    if (!existing) {
+        throw new ValidationError('Student does not exist!', 404);
+    }
+
+    const updatedRows = await studentModels.update({ ...student, address: student.address.trim() });
+    return updatedRows;
+}
+
+export const deleteStudent = async (id) => {
+     const existing = await doesStudentExist({id});
+    if (!existing) {
+        throw new ValidationError('Student does not exist!', 404);
+    }
+    const deletedStudent = await studentModels.remove(id);
+    return deletedStudent;
+}
+
+
+/* ===== applications and uploaded documents of the student ===== */
+const mustHaveStudent = async (studentId) => {
+    const id = toId(studentId, 'student id');
+    const existing = await doesStudentExist({ id });
+    if (!existing) {
+        throw new ValidationError('Student does not exist!', 404);
+    }
+    return id;
+}
+
+// the application must belong to this student
