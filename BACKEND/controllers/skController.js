@@ -1,5 +1,23 @@
 import * as skServices from '../services/skServices.js';
 
+// WBS 3.1.6 [Backend] Implement SK role-based access permissions
+export const login = async (req, res) => {
+    const {email, password} = req.body;
+    const sk = {email, password};
+
+    try{
+        const result = await skServices.login(sk);
+        res.status(200).json({
+            success: true,
+            message: result
+        });
+    }catch(e){
+        res.status(e.statusCode || 500).json({
+            error: e.message || "Internal Server Error"
+        });
+    }
+}
+
 /* ===== reviewing the applications of the students ===== */
 const fail = (res, e) => {
     console.log(e);
