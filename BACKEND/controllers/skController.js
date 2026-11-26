@@ -17,6 +17,76 @@ export const login = async (req, res) => {
         });
     }
 }
+// WBS 3.1.7 [Backend] Create and publish scholarship programs
+/* ===== scholarships (posted and managed by the SK) ===== */
+export const getAllScholarships = async (req, res) => {
+    try{
+        const scholarships = await skServices.fetchAllScholarships();
+        res.status(200).json(scholarships);
+    }catch(e){
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            error: e.message || "Internal Server Error"
+        });
+    }
+}
+
+export const createScholarship = async (req, res) => {
+    const {sk_id, title, desc, deadline, reqs} = req.body;
+    const scholarship = {sk_id, title, desc, deadline, reqs};
+
+    try{
+        const scholarshipId = await skServices.createScholarship(scholarship);
+        res.status(200).json({
+            success: true,
+            message: scholarshipId
+        });
+    }catch(e){
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            error: e.message
+        });
+    }
+}
+
+export const updateScholarship = async (req, res) => {
+    const {title, desc, deadline, reqs} = req.body;
+    const { id } = req.params;
+    const scholarship = {id, title, desc, deadline, reqs};
+
+    try {
+        const updatedScholarship = await skServices.updateScholarship(scholarship);
+        res.status(200).json({
+            success: true,
+            message: updatedScholarship
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            success: false,
+            error: e.message
+        });
+    }
+}
+
+//delete
+export const deleteScholarship = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedScholarship = await skServices.deleteScholarship(parseInt(id));
+        res.status(200).json({
+            success: true,
+            message: deletedScholarship
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            success: false,
+            error: e.message
+        });
+    }
+}
 
 /* ===== reviewing the applications of the students ===== */
 const fail = (res, e) => {

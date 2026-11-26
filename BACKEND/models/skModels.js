@@ -6,6 +6,53 @@ export const findSkByEmail = async (email) => {
   return rows;
 };
 
+// WBS 3.1.7 [Backend] Create and publish scholarship programs
+/* ===== scholarships (table sk_scholarship, posted by the SK) ===== */
+const COLS = "id, sk_id, title, description, DATE_FORMAT(deadline, '%Y-%m-%d') AS deadline, requirements";
+
+export const fetchAllScholarships = async () => {
+ const [rows] = await pool.query(`SELECT ${COLS} FROM sk_scholarship ORDER BY id`);
+ return rows;
+};
+
+export const findScholarshipByTitleAndDeadline = async (scholarship) => {
+  const [rows] = await pool.query('SELECT * FROM sk_scholarship WHERE title = ? AND deadline = ?',
+    [scholarship.title, scholarship.deadline]
+  );
+  return rows;
+};
+
+export const findScholarshipById = async (id) => {
+  const [rows] = await pool.query(`SELECT ${COLS} FROM sk_scholarship WHERE id = ?`, [id]);
+  return rows;
+};
+
+//insert
+export const insertScholarship = async (scholarship) => {
+  const [result] = await pool.query(
+    "INSERT INTO sk_scholarship (sk_id, title, description, deadline, requirements) VALUES (?, ?, ?, ?, ?)",
+    [scholarship.sk_id, scholarship.title, scholarship.description, scholarship.deadline, scholarship.requirements]
+  );
+  return result.insertId;
+}
+
+//update
+export const updateScholarship = async (scholarship) => {
+  const [result] = await pool.query(
+    "UPDATE sk_scholarship SET title = ?, description = ?, deadline = ?, requirements = ? WHERE id = ?",
+    [scholarship.title, scholarship.description, scholarship.deadline, scholarship.requirements, scholarship.id]
+  );
+  return result.affectedRows;
+};
+
+//delete
+export const removeScholarship = async (id) => {
+  const [result] = await pool.query (
+    "DELETE FROM sk_scholarship WHERE id = ?",[id]
+  );
+  return result.affectedRows;
+}
+
 /* ===== applications of the students (the SK reviews them) ===== */
 // the file itself is in the uploads folder, the database only has its name (file_path).
 const DOC_COLS = "id, application_id, requirement, file_name, file_path, student_name, status, note, UNIX_TIMESTAMP(uploaded_at) * 1000 AS uploaded_at";
@@ -56,4 +103,3 @@ export const updateApplication = async (id, changes) => {
   );
   return result.affectedRows;
 };
-

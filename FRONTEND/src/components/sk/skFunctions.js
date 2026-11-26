@@ -73,3 +73,40 @@ export const notifyStudents = async (students, emails, subject, text, showToast)
         ? `Email sent to ${messages.length} student${messages.length > 1 ? 's' : ''}.`
         : `Saved, but the email was not sent. ${result.error}`);
 }
+
+export const DEFAULT_REQS = ['Barangay Clearance', 'Report Card', 'Certificate of Enrollment', 'Proof of Income'];
+
+/* ===== scholarship rules ===== */
+// the documents an application must have
+// Kinukuha ang documents na kailangan.
+export const requirementsOf = (app, scholarships) => {
+    const scholarship = scholarships.find((s) => s.id === app.sid);
+    return scholarship?.reqs?.length ? scholarship.reqs : DEFAULT_REQS;
+}
+
+/* ===== scholarships from the backend ===== */
+// scholarship from the backend = { id, title, desc, deadline, reqs }
+// Inaayos ang scholarship data mula sa backend.
+export const toScholarship = (row) => ({
+    id: String(row.id),
+    title: row.title,
+    desc: row.desc || '',
+    deadline: row.deadline || '',
+    reqs: Array.isArray(row.reqs) && row.reqs.length ? row.reqs : DEFAULT_REQS.slice(),
+});
+
+// --- skFunctions ---
+// Helpers used only by the SK side (no React in here).
+// trimmed, no empty rows, no duplicates
+// Tinatanggal ang blank at duplicate na requirements.
+// WBS 3.1.7 [Frontend] Create and publish scholarship programs
+export const cleanList = (list) => [...new Set(list.map((x) => x.trim()).filter(Boolean))];
+
+// the "+" button on the scholarship form adds the first of these that is not in the list yet
+const SUGGESTED_REQS = ['Barangay Indigency', 'Birth Certificate', 'Valid ID', 'Certificate of Good Moral Character', 'Parent or Guardian ID', 'Recent 2x2 Photo'];
+
+// Nagmumungkahi ng dagdag na requirement.
+export const nextSuggestion = (current) => {
+    const have = current.map((x) => x.trim().toLowerCase());
+    return SUGGESTED_REQS.find((x) => !have.includes(x.toLowerCase())) || '';
+}
