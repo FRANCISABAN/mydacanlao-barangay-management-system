@@ -1,6 +1,11 @@
+// SK - MGA PAGE
+// Magkakasama rito ang mga connected na bahagi ng page.
+
 import { useState } from 'react';
-import { SKLogo } from '../../components/sk/SKSidebarAndUI';
-import { call, send } from '../../components/sk/skFunctions';
+import { SKSidebar, SKLogo, SKBanner } from '../../components/sk/SKSidebarAndUI';
+import { SKApplicationList, SKStudentList, SKReviewDrawer, SKReviewPanel, SKLightbox } from '../../components/sk/ApplicationReview';
+import { SKScholarshipManager } from '../../components/sk/ScholarshipManagement';
+import { call, send, requirementsOf, studentOf } from '../../components/sk/skFunctions';
 
 // Login ng SK account.
 // SK login only. (Student login and sign up are in StudentLoginPage.jsx)
@@ -126,7 +131,112 @@ function SKLoginPage({ onLoggedIn }) {
     )
 }
 
-/* ===== reviewing an application (backend: /sk/applications) ===== */
+// Main dashboard ng SK.
+const TABS = [
+    ["apps", "Applications", "file", "Review submitted documents and manage application statuses"],
+    ["students", "Students", "users", "Monitor registered students and the status of their applications"],
+    ["sch", "Scholarships", "star", "Post scholarships and notify students by email"],
+];
+
+// WBS 3.1.1 [Frontend] Display, search, and view scholarship applications
+// WBS 3.1.2 [Frontend] Review and validate scholarship requirements
+// WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
+// WBS 3.1.4 [Frontend] Manage scholarship application statuses and decisions
+// WBS 3.1.5 [Frontend] Manage in-system and email notifications
+// WBS 3.1.7 [Frontend] Create and publish scholarship programs
+function SKPage({ me, scholarships, students, apps, notify, showToast, loadRemote, onLogout }) {
+    const [tab, setTab] = useState('apps');
+    const [schFilter, setSchFilter] = useState(null);
+    const [status, setStatus] = useState('All');
+    const [query, setQuery] = useState('');
+    const [studentQuery, setStudentQuery] = useState('');
+    const [openAppId, setOpenAppId] = useState(null);
+    const [zoom, setZoom] = useState(null);
+    const [editId, setEditId] = useState(null);
+
+    const submitted = apps.filter((a) => a.status !== 'Draft');
+    const openApp = apps.find((a) => a.id === openAppId);
+    const current = TABS.find((t) => t[0] === tab);
+
+    const titleOf = (app) => scholarships.find((s) => s.id === app.sid)?.title || 'the scholarship';
+
+    const changeTab = (key) => {
+        setTab(key);
+        setSchFilter(null);
+        setEditId(null);
+        setZoom(null);
+        setOpenAppId(null);
+        loadRemote();
+    }
+
+    /* ===== scholarships (backend: /sk/scholarship) ===== */
+    // WBS 3.1.7 [Frontend] Create and publish scholarship programs
+    const handleCreate = async ({ title, desc, deadline, reqs }) => {
+        if (!title || !desc || !deadline || !reqs.length) {
+            showToast('Fill in the title, description, deadline, and at least one document.');
+            return false;
+        }
+
+        try {
+            await call('/sk/scholarship', send('POST', { sk_id: me.dbId, title, desc, deadline, reqs }));
+        } catch (e) {
+            showToast(e.message);
+            return false;
+        }
+
+        notify(
+            students.map((s) => s.email),
+            `New scholarship: ${title}`,
+            `${desc} Required: ${reqs.join(', ')}. Deadline: ${deadline}`
+        );
+        await loadRemote();
+        return true;
+    }
+
+    const handleSaveEdit = async (id, { title, desc, deadline, reqs }) => {
+        if (!title || !desc || !deadline || !reqs.length) {
+            showToast('Fill in the title, description, deadline, and at least one document.');
+            return false;
+        }
+
+        try {
+            await call(`/sk/scholarship/${id}`, send('PUT', { title, desc, deadline, reqs }));
+        } catch (e) {
+            showToast(e.message);
+            return false;
+        }
+
+        setEditId(null);
+        await loadRemote();
+        showToast('Scholarship updated.');
+        return true;
+    }
+
+    const handleDelete = async (id) => {
+        const scholarship = scholarships.find((s) => s.id === id);
+        if (!scholarship || !window.confirm(`Delete "${scholarship.title}"? Its applications will be removed too.`)) return;
+
+        try {
+            await call(`/sk/scholarship/${id}`, { method: 'DELETE' });
+        } catch (e) {
+            showToast(e.message);
+            return;
+        }
+
+        setSchFilter(null);
+        setOpenAppId(null);
+        await loadRemote();
+        showToast('Scholarship deleted.');
+    }
+
+    const handleOpenScholarship = (id) => {
+        setSchFilter(id);
+        setStatus('All');
+        setQuery('');
+        setTab('apps');
+    }
+
+    /* ===== reviewing an application (backend: /sk/applications) ===== */
     // saves the review in the backend, then loads the lists again. Gives back true when it worked.
     // WBS 3.1.2 [Frontend] Review and validate scholarship requirements
     const saveReview = async (path, body, method = 'PUT') => {
@@ -230,29 +340,65 @@ function SKLoginPage({ onLoggedIn }) {
     const zoomApp = zoom ? apps.find((a) => a.id === zoom.appId) : null;
     const zoomUpload = zoomApp?.reqs[zoom.req];
 
-{tab === 'apps' && (
-    <SKApplicationList
-        apps={submitted}
-        scholarships={scholarships}
-        students={students}
-        schFilter={schFilter}
-        status={status}
-        query={query}
-        onStatus={setStatus}
-        onQuery={setQuery}
-        onClearSch={() => setSchFilter(null)}
-        onReview={setOpenAppId}
-    />
-)}
-{tab === 'students' && (
-    <SKStudentList
-        students={students}
-        apps={apps}
-        scholarships={scholarships}
-        query={studentQuery}
-        onQuery={setStudentQuery}
-    />
-)}
+    return (
+        <div className="page role-sk">
+            <div className="sk-shell">
+
+                <SKSidebar me={me} tabs={TABS} tab={tab} onTab={changeTab} onLogout={onLogout} />
+
+                <section>
+                    {/* blue banner sa taas */}
+                    <SKBanner me={me} />
+
+                    <div className="sk-head">
+                        <div>
+                            <h2>{current[1]}</h2>
+                            <p className="mut" style={{ margin: "6px 0 0" }}>{current[3]}</p>
+                        </div>
+                        <span className="live">Live</span>
+                    </div>
+
+                    <div className="view enter" key={tab}>
+                        {tab === 'apps' && (
+                            <SKApplicationList
+                                apps={submitted}
+                                scholarships={scholarships}
+                                students={students}
+                                schFilter={schFilter}
+                                status={status}
+                                query={query}
+                                onStatus={setStatus}
+                                onQuery={setQuery}
+                                onClearSch={() => setSchFilter(null)}
+                                onReview={setOpenAppId}
+                            />
+                        )}
+                        {tab === 'students' && (
+                            <SKStudentList
+                                students={students}
+                                apps={apps}
+                                scholarships={scholarships}
+                                query={studentQuery}
+                                onQuery={setStudentQuery}
+                            />
+                        )}
+                        {tab === 'sch' && (
+                            <SKScholarshipManager
+                                scholarships={scholarships}
+                                apps={submitted}
+                                editId={editId}
+                                onCreate={handleCreate}
+                                onOpen={handleOpenScholarship}
+                                onEdit={setEditId}
+                                onSaveEdit={handleSaveEdit}
+                                onCancelEdit={() => setEditId(null)}
+                                onDelete={handleDelete}
+                            />
+                        )}
+                    </div>
+                </section>
+
+            </div>
 
             {openApp && (
                 <SKReviewDrawer onClose={() => setOpenAppId(null)}>
@@ -281,3 +427,9 @@ function SKLoginPage({ onLoggedIn }) {
                     onClose={() => setZoom(null)}
                 />
             )}
+        </div>
+    )
+}
+
+// Ginagamit ng ibang page ang mga component na ito.
+export { SKLoginPage, SKPage };

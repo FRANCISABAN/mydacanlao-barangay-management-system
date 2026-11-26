@@ -33,6 +33,88 @@ export const login = async (sk) => {
     const { id, name, email, position } = existing.sk;
     return { id, name, email, position };
 }
+
+// WBS 3.1.7 [Backend] Create and publish scholarship programs
+/* ===== scholarships (posted and managed by the SK) ===== */
+// the frontend sends / receives { title, desc, deadline, reqs: [..] }
+// the database saves { title, description, deadline, requirements: '["..",".."]' }
+const toApi = (row) => {
+    let reqs = [];
+    try { reqs = JSON.parse(row.requirements) || []; } catch { reqs = []; }
+    return { id: row.id, sk_id: row.sk_id, title: row.title, desc: row.description, deadline: row.deadline, reqs };
+}
+
+const cleanScholarship = (scholarship) => {
+    const reqs = Array.isArray(scholarship.reqs) ? scholarship.reqs.map((x) => String(x).trim()).filter(Boolean) : [];
+
+    if (!scholarship.title || !scholarship.desc || !scholarship.deadline || reqs.length === 0) {
+        throw new ValidationError('Title, description, deadline and at least one requirement are required!', 400);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(scholarship.deadline)) {
+        throw new ValidationError('Deadline must look like 2026-12-15', 400);
+    }
+
+    return {
+        title: scholarship.title.trim(),
+        description: scholarship.desc.trim(),
+        deadline: scholarship.deadline,
+        requirements: JSON.stringify(reqs)
+    };
+}
+
+export const fetchAllScholarships = async () => {
+ const scholarships = await skModels.fetchAllScholarships();
+ return scholarships.map(toApi);
+}
+
+const doesScholarshipExist = async (scholarship) => {
+    let existing;
+    if(Object.hasOwn(scholarship, "id")) {
+       existing = await skModels.findScholarshipById(scholarship.id);
+    } else {
+       existing = await skModels.findScholarshipByTitleAndDeadline(scholarship);
+    }
+  if (existing.length > 0) {
+    return true;
+
+    }
+
+ return false;
+}
+
+export const createScholarship = async (scholarship) => {
+    const cleaned = cleanScholarship(scholarship);
+
+    const existing = await doesScholarshipExist(cleaned);
+    if (existing) {
+        throw new ValidationError('Scholarship already exists', 409);
+    }
+
+ const scholarshipId = await skModels.insertScholarship({ sk_id: scholarship.sk_id || null, ...cleaned });
+ return scholarshipId;
+}
+
+export const updateScholarship = async (scholarship) => {
+    const cleaned = cleanScholarship(scholarship);
+
+    const existing = await doesScholarshipExist({ id: scholarship.id });
+    if (!existing) {
+        throw new ValidationError('Scholarship does not exist!', 404);
+    }
+
+    const updatedRows = await skModels.updateScholarship({ id: scholarship.id, ...cleaned });
+    return updatedRows;
+}
+
+export const deleteScholarship = async (id) => {
+    const existing = await doesScholarshipExist({id});
+    if (!existing) {
+        throw new ValidationError('Scholarship does not exist!', 404);
+    }
+    const deletedScholarship = await skModels.removeScholarship(id);
+    return deletedScholarship;
+}
+
 /* ===== reviewing the applications of the students ===== */
 // WBS 3.1.1 [Backend] Display, search, and view scholarship applications
 export const fetchApplications = async () => {

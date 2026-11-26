@@ -6,6 +6,13 @@ const skRoutes = express.Router();
 // WBS 3.1.6 [Backend] Implement SK role-based access permissions
 skRoutes.post('/login', skController.login);
 
+// scholarships belong to the SK
+// WBS 3.1.7 [Backend] Create and publish scholarship programs
+skRoutes.get('/scholarship/all', skController.getAllScholarships);
+skRoutes.post('/scholarship', skController.createScholarship);
+skRoutes.put('/scholarship/:id', skController.updateScholarship);
+skRoutes.delete('/scholarship/:id', skController.deleteScholarship);
+
 // WBS 3.1.1 [Backend] Display, search, and view scholarship applications
 skRoutes.get('/applications', skController.getApplications);
 skRoutes.get('/applications/approved-count', skController.getApprovedCount);
