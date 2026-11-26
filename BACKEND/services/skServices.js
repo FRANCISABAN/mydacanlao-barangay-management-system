@@ -63,3 +63,16 @@ export const reviewDocument = async (applicationId, review) => {
     }
     return true;
 }
+
+// WBS 3.1.3 [Backend] Manage scholarship requirement resubmissions
+// WBS 3.1.4 [Backend] Manage scholarship application statuses and decisions
+export const rejectApplication = async (applicationId, noteText) => {
+    const app = await submittedApplication(applicationId);
+    const note = String(noteText || '').trim();
+
+    if (!note) {
+        throw new ValidationError('Write a comment first so the student knows why.', 400);
+    }
+
+    return await skModels.updateApplication(app.id, { status: 'Rejected', note, rejected_at: Date.now() });
+}
