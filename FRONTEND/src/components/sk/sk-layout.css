@@ -1,0 +1,178 @@
+/* SK: toast, chips, sidebar */
+
+.toast::before {
+    content: "";
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #2ee59d;
+    box-shadow: 0 0 0 4px rgba(46,229,157,.25);
+}
+
+.toast::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--sun);
+    animation: tbar 2.6s linear forwards;
+}
+
+.chip::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 7px;
+    vertical-align: 1px;
+}
+
+.rl .chip::before {
+    display: none;
+}
+
+.chip.Pending::before, .chip.Uploaded::before, .chip.Under::before {
+    animation: pdot 1.4s infinite;
+}
+
+.rd {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.rd>div {
+    min-width: 0;
+}
+
+.ft {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 52px;
+    border-radius: 12px;
+    background: var(--infobg);
+    color: var(--info);
+    font: 800 11px Figtree,sans-serif;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.ft::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    background: var(--bg);
+    border-bottom-left-radius: 9px;
+    opacity: .8;
+}
+
+.ft.pdf {
+    background: var(--badbg);
+    color: #ff6b7a;
+}
+
+.ft.none {
+    background: var(--line);
+    color: var(--mut);
+}
+
+.si {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    background: color-mix(in srgb,var(--c) 24%,#fff);
+    margin-bottom: 16px;
+}
+
+
+.si svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: color-mix(in srgb,var(--c) 65%,#000);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.role-sk.login .lside {
+    background: #080d1c;
+    background-image: linear-gradient(rgba(245,197,66,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(245,197,66,.07) 1px,transparent 1px);
+    background-size: 34px 34px;
+}
+
+.role-sk {
+    --bg: #080d1c;
+    --card: #101830;
+    --ink: #e9eef9;
+    --mut: #8f9cc0;
+    --line: #223055;
+    --acc: #f5c542;
+    --onacc: #0a1020;
+    --r: 10px;
+    --in: #0b1226;
+    --okbg: #0f3a2c;
+    --ok: #5fe0ae;
+    --badbg: #431a22;
+    --warnbg: #3b3010;
+    --warn: #f5c64d;
+    --infobg: #1b2a58;
+    --info: #9db8ff;
+    --shadow: 0 0 0 1px #223055;
+}
+
+.role-sk .p {
+    color: #0a1020;
+}
+
+.role-sk h2, .role-sk h3 {
+    font-weight: 600;
+}
+
+.role-sk .card:hover {
+    border-color: var(--acc);
+}
+
+.chip.Missing {
+    background: var(--warnbg);
+    color: var(--warn);
+}
+
+.role-sk .n.u {
+    color: var(--ink);
+}
+
+.sk-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100%;
+}
+
+.sk-side {
+    background: #050914;
+    border-right: 1px solid var(--line);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    color: #fff;
+}
+
+.sk-side .brand {
+    padding: 0 8px 18px;
+}

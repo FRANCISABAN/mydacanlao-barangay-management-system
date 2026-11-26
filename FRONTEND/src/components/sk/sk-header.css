@@ -1,0 +1,262 @@
+/* SK: header, drawer, responsive */
+
+.who {
+    margin-top: auto;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.who b {
+    display: block;
+}
+
+.who button {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    color: #fff;
+    border-color: var(--line);
+}
+
+.sk-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 22px 0;
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+.sk-head h2 {
+    font-size: 30px;
+}
+
+.live {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--mut);
+    font-size: 14px;
+}
+
+.live::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #2ee59d;
+    animation: pulse 2s infinite;
+}
+
+.tbl {
+    overflow-x: auto;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.filters input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filters select {
+    width: 180px;
+}
+
+.scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(2,6,20,.6);
+    z-index: 30;
+    animation: fade .25s;
+}
+
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(560px,100%);
+    background: var(--bg);
+    color: var(--ink);
+    z-index: 31;
+    padding: 22px;
+    overflow: auto;
+    animation: slide .35s var(--ease);
+    border-left: 1px solid var(--line);
+}
+
+.acts {
+    grid-column: 1/-1;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rjbox {
+    grid-column: 1/-1;
+    animation: rise .3s var(--ease);
+}
+
+.rjbox label {
+    margin-top: 0;
+}
+
+.rjbox textarea {
+    margin-bottom: 10px;
+}
+
+.lbx {
+    position: fixed;
+    z-index: 41;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: min(94vw,760px);
+    display: grid;
+    gap: 12px;
+    animation: pop .3s var(--ease);
+}
+
+.lbx img {
+    width: 100%;
+    max-height: 76vh;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #050914;
+}
+
+/* Close button of the big preview: the row text is white, so the button needs its own dark text */
+.lbx .row button {
+    color: #0b1f4a;
+    font-weight: 700;
+}
+
+.sm {
+    padding: 6px 14px;
+    font-size: 14px;
+}
+
+.acts {
+    margin-top: 2px;
+}
+
+.rjbox.card {
+    margin: 12px 0;
+}
+
+
+@media (max-width:860px) {
+    .sk-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sk-side {
+        position: static;
+        height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .who {
+        display: none;
+    }
+}
+
+.av {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    font-weight: 800;
+    color: #0a1020;
+    background: linear-gradient(135deg,#f5c542,#ff9f5a);
+}
+
+.av.lg {
+    width: 54px;
+    height: 54px;
+    font-size: 18px;
+}
+
+
+.who2 {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+}
+
+.role-sk.page {
+    position: relative;
+    background: #060b19;
+}
+
+.role-sk.page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(900px 520px at 88% -10%,rgba(245,197,66,.15),transparent 60%),radial-gradient(760px 520px at -10% 110%,rgba(91,140,255,.18),transparent 60%),radial-gradient(rgba(255,255,255,.055) 1px,transparent 1px) 0 0/26px 26px;
+    animation: aur 14s ease-in-out infinite alternate;
+}
+
+.role-sk .sk-shell {
+    position: relative;
+    z-index: 1;
+}
+
+.role-sk .sk-side {
+    background: rgba(7,12,28,.78);
+    backdrop-filter: blur(14px);
+    border-right: 1px solid #1b2850;
+}
+
+.sknav {
+    position: relative;
+    display: grid;
+    gap: 4px;
+}
+
+.role-sk .nav {
+    position: relative;
+    z-index: 1;
+    border-radius: 10px;
+}
+
+.role-sk .nav.on {
+    background: transparent;
+    color: var(--acc);
+}
+
+.role-sk .nav.on::before {
+    display: none;
+}
+
+.who .av {
+    margin-bottom: 10px;
+}
+
+.role-sk .sk-head {
+    padding: 28px 24px 0;
+}
+
+.role-sk .sk-head h2 {
+    font-size: 34px;
+    font-weight: 800;
+    background: linear-gradient(90deg,#fff,#f5c542);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}

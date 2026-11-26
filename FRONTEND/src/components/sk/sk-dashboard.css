@@ -1,0 +1,232 @@
+/* SK: dashboard, table, forms */
+
+.role-sk .view {
+    padding: 22px 24px 60px;
+}
+
+.role-sk .p {
+    background: linear-gradient(135deg,#ffd35a,#f5a623);
+    color: #1a1200;
+    box-shadow: 0 8px 22px rgba(245,197,66,.28);
+}
+
+.role-sk input, .role-sk textarea, .role-sk select {
+    background: #0a1226;
+    border-color: #1f2d5a;
+}
+
+.role-sk .card {
+    background: rgba(13,21,48,.85);
+    border: 1px solid #1d2b55;
+    backdrop-filter: blur(6px);
+}
+
+.pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border-radius: 999px;
+    padding: 8px 16px;
+    background: #0d1530;
+    border: 1px solid #1d2b55;
+    color: #b8c4e6;
+    transition: all .3s var(--ease);
+}
+
+.pill b {
+    font: 800 15px "Bricolage Grotesque",serif;
+    color: #fff;
+    background: #1a2650;
+    border-radius: 12px;
+    padding: 0 9px;
+}
+
+.pill.on {
+    background: var(--acc);
+    color: #0a1020;
+    border-color: var(--acc);
+    box-shadow: 0 0 0 4px rgba(245,197,66,.2);
+}
+
+.pill.on b {
+    background: rgba(10,16,32,.18);
+    color: #0a1020;
+}
+
+.role-sk table {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.role-sk thead th {
+    border: 0;
+    padding: 0 12px 4px;
+}
+
+.role-sk td {
+    border: 0;
+    padding: 14px 12px;
+    background: #0d1530;
+    transition: background .25s;
+}
+
+
+.role-sk td:first-child {
+    border-radius: 14px 0 0 14px;
+}
+
+.role-sk td:last-child {
+    border-radius: 0 14px 14px 0;
+}
+
+.role-sk tbody tr {
+    animation: rise .45s var(--ease) both;
+    animation-delay: calc(var(--i,0)*45ms);
+    transition: transform .3s var(--ease),filter .3s;
+}
+
+.role-sk tbody tr:hover {
+    background: none;
+    transform: translateX(5px);
+}
+
+.role-sk tbody tr:hover td {
+    background: #14204a;
+}
+
+.role-sk tbody tr:hover td:first-child {
+    box-shadow: inset 3px 0 0 var(--acc);
+}
+
+.role-sk .tbl.card {
+    padding: 8px 12px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.mini {
+    height: 6px;
+    width: 96px;
+    border-radius: 3px;
+    background: #1b2850;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.mini u {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg,#5b8cff,#2ee59d);
+    animation: grow 1s var(--ease);
+}
+
+.scrim {
+    backdrop-filter: blur(6px);
+}
+
+.drawer {
+    background: linear-gradient(180deg,#0b1330,#060b19);
+    box-shadow: -30px 0 80px rgba(0,0,0,.6);
+    padding: 26px;
+}
+
+.rjbox {
+    animation: expand .35s var(--ease);
+}
+
+
+.lbx img {
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+
+
+@media (max-width:860px) {
+    .sknav {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .role-sk .nav.on {
+        background: #14203f;
+    }
+
+    .role-sk .sk-head {
+        padding: 20px 14px 0;
+    }
+
+    .role-sk .view {
+        padding: 16px 14px;
+    }
+}
+
+.card.clk {
+    cursor: pointer;
+}
+
+.role-sk .card.clk:hover {
+    border-color: #fcd116;
+    transform: translateY(-2px);
+}
+
+.reqedit label {
+    margin-top: 14px;
+}
+
+.reqrow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.reqrow input {
+    flex: 1;
+}
+
+.reqrow .sm {
+    padding: 8px 14px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.addreq {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px dashed var(--acc);
+    background: transparent;
+    color: var(--acc);
+    font-weight: 700;
+}
+
+.addreq span {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--acc);
+    color: var(--onacc,#fff);
+    font-size: 16px;
+    line-height: 1;
+}
+
+.chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.chips .chip {
+    animation: none;
+}

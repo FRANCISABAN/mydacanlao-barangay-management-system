@@ -1,0 +1,156 @@
+/* SK: bagong login page */
+
+/* ===== BAGONG SK LOGIN PAGE (skl) ===== */
+.skl {
+    --skl-blue: #0a2a9c;
+    --skl-yellow: #fcd116;
+    --skl-red: #d6001c;
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 28px 16px;
+    overflow: hidden;
+    background: #050f2f;
+    color: #fff;
+    font-family: "Figtree", system-ui, sans-serif;
+}
+.skl *, .skl *::before, .skl *::after { box-sizing: border-box; }
+.skl svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* background: gumagalaw na malabong kulay + maliit na grid */
+.skl-bg { position: absolute; inset: 0; pointer-events: none; }
+.skl-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
+}
+.skl-bg span { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; animation: skl-drift 18s ease-in-out infinite alternate; }
+.skl-bg span:nth-child(1) { width: 620px; height: 620px; background: #1f4fe0; top: -220px; left: -160px; }
+.skl-bg span:nth-child(2) { width: 460px; height: 460px; background: var(--skl-yellow); opacity: .26; bottom: -200px; right: 8%; animation-delay: -6s; }
+.skl-bg span:nth-child(3) { width: 420px; height: 420px; background: var(--skl-red); opacity: .26; top: 8%; right: -150px; animation-delay: -11s; }
+@keyframes skl-drift { to { transform: translate(60px, 40px) scale(1.12); } }
+
+/* Back to home */
+.skl-back {
+    position: absolute; top: 22px; left: 22px; z-index: 3;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px 9px 12px; border-radius: 999px;
+    background: rgba(255,255,255,.1); color: #fff;
+    border: 1px solid rgba(255,255,255,.22); box-shadow: none;
+    backdrop-filter: blur(8px); font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .2s, transform .2s;
+}
+.skl-back:hover { background: rgba(255,255,255,.2); transform: translateX(-2px); }
+.skl-back svg { width: 16px; height: 16px; }
+
+/* ang card */
+.skl-card {
+    position: relative; z-index: 2;
+    width: min(980px, 100%);
+    display: grid; grid-template-columns: 1.05fr 1fr;
+    border-radius: 30px; overflow: hidden;
+    background: #fff;
+    box-shadow: 0 40px 100px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.12);
+    animation: skl-rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes skl-rise { from { opacity: 0; transform: translateY(26px) scale(.98); } }
+
+/* kaliwa */
+.skl-hero {
+    position: relative; overflow: hidden;
+    padding: 44px 40px 52px;
+    display: flex; flex-direction: column; align-items: flex-start;
+    background: radial-gradient(circle at 20% 0%, #2b63ff 0%, #0a2a9c 52%, #04124a 100%);
+    isolation: isolate;
+}
+.skl-hero::before {   /* malaking malabong logo sa likod */
+    content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; translate: -50% -50%; width: 440px; aspect-ratio: 1;
+    border-radius: 50%; background: url('../../assets/sk-logo.png') center / cover no-repeat;
+    filter: blur(6px); opacity: .16;
+}
+.skl-logowrap {
+    position: relative; width: 132px; aspect-ratio: 1; margin-bottom: 26px;
+    border-radius: 50%; padding: 6px; background: var(--skl-yellow);
+    box-shadow: 0 0 0 8px rgba(252,209,22,.22), 0 18px 40px rgba(0,0,0,.4);
+    animation: skl-float 5s ease-in-out infinite;
+}
+@keyframes skl-float { 50% { transform: translateY(-8px); } }
+.skl .skl-logo { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #fff; }
+
+.skl-eyebrow { margin: 0 0 10px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--skl-yellow); }
+.skl-hero h1 { margin: 0; font-family: "Bricolage Grotesque", Georgia, serif; font-size: clamp(38px, 5vw, 54px); font-weight: 800; line-height: 1.02; color: #fff; }
+.skl-sub { margin: 12px 0 30px; max-width: 30ch; font-size: 16px; line-height: 1.5; color: rgba(255,255,255,.78); }
+
+.skl-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; width: 100%; }
+.skl-points li {
+    display: flex; align-items: center; gap: 13px; padding: 11px 14px;
+    border-radius: 14px; background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.14);
+    font-size: 15px; font-weight: 600; color: #fff; backdrop-filter: blur(6px);
+    animation: skl-rise .6s both;
+}
+.skl-points li:nth-child(1) { animation-delay: .25s; } .skl-points li:nth-child(2) { animation-delay: .35s; } .skl-points li:nth-child(3) { animation-delay: .45s; }
+.skl-points li span { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--skl-yellow); color: var(--skl-blue); }
+.skl-points li svg { width: 18px; height: 18px; }
+
+.skl-strip { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, #1f4fe0 0 33%, var(--skl-yellow) 33% 66%, var(--skl-red) 66%); }
+
+/* kanan */
+.skl-form { padding: 52px 48px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(180deg, #fff, #f5f9ff); color: #10244a; }
+.skl-chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px 6px 10px; border-radius: 999px; background: #e6eeff; color: #1b4fd6; font-size: 12.5px; font-weight: 700; }
+.skl-chip svg { width: 15px; height: 15px; }
+.skl-form h2 { margin: 18px 0 6px; font-family: "Bricolage Grotesque", Georgia, serif; font-size: 34px; font-weight: 800; color: #0b1f4a; }
+.skl-mut { margin: 0 0 26px; color: #64799e; font-size: 15px; }
+.skl-form label { display: block; margin: 16px 0 7px; font-size: 13.5px; font-weight: 700; color: #34507f; }
+
+.skl-field { position: relative; }
+.skl-field > svg { position: absolute; left: 15px; top: 50%; translate: 0 -50%; width: 19px; height: 19px; color: #7d92b8; pointer-events: none; transition: color .2s; }
+.skl .skl-field input {
+    width: 100%; height: 52px; padding: 0 48px 0 46px;
+    border-radius: 14px; border: 1.5px solid #d3e0f7; background: #fff; color: #10244a;
+    font: inherit; font-size: 16px; outline: none; box-shadow: 0 1px 2px rgba(20,60,140,.05);
+    transition: border-color .2s, box-shadow .2s;
+}
+.skl .skl-field input::placeholder { color: #9fb0cc; }
+.skl .skl-field input:focus { border-color: #2169f5; box-shadow: 0 0 0 4px rgba(33,105,245,.16); }
+.skl-field:focus-within > svg { color: #2169f5; }
+.skl .skl-eye { position: absolute; right: 8px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #7d92b8; box-shadow: none; cursor: pointer; }
+.skl .skl-eye:hover { background: #eef3ff; color: #2169f5; }
+.skl-eye svg { width: 20px; height: 20px; }
+
+.skl-err { margin-top: 16px; padding: 11px 14px; border-radius: 12px; background: #fff0f1; border: 1px solid #ffc9ce; color: #b3001a; font-size: 14px; font-weight: 600; animation: skl-shake .4s; }
+@keyframes skl-shake { 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
+
+.skl .skl-submit {
+    width: 100%; height: 54px; margin-top: 24px; border: 0; border-radius: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, #1f4fe0, #2d8bff); color: #fff;
+    font: inherit; font-size: 17px; font-weight: 800; letter-spacing: .01em;
+    box-shadow: 0 14px 28px rgba(31,79,224,.38);
+    transition: transform .2s, box-shadow .2s, filter .2s;
+}
+.skl .skl-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 34px rgba(31,79,224,.46); filter: brightness(1.06); }
+.skl .skl-submit:active:not(:disabled) { transform: translateY(0); }
+.skl .skl-submit:disabled { opacity: .8; cursor: progress; }
+.skl-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; animation: skl-turn .7s linear infinite; }
+@keyframes skl-turn { to { rotate: 360deg; } }
+
+.skl-foot { margin: 22px 0 0; text-align: center; font-size: 14.5px; color: #64799e; }
+.skl .skl-foot button { padding: 0; border: 0; background: none; box-shadow: none; color: #1b4fd6; font: inherit; font-weight: 800; cursor: pointer; }
+.skl .skl-foot button:hover { text-decoration: underline; }
+
+/* cellphone / maliit na screen */
+@media (max-width: 820px) {
+    .skl { place-items: start center; padding: 74px 14px 24px; }
+    .skl-card { grid-template-columns: 1fr; border-radius: 24px; }
+    .skl-hero { padding: 28px 24px 34px; flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 18px; }
+    .skl-logowrap { width: 84px; margin: 0; box-shadow: 0 0 0 5px rgba(252,209,22,.22), 0 12px 26px rgba(0,0,0,.35); }
+    .skl-hero h1 { font-size: 34px; }
+    .skl-eyebrow { flex-basis: 100%; order: -1; margin-bottom: 14px; }
+    .skl-sub, .skl-points { display: none; }
+    .skl-form { padding: 30px 24px 32px; }
+    .skl-form h2 { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .skl *, .skl *::before, .skl-bg span { animation: none !important; } }
