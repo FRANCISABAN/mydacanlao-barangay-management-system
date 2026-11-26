@@ -18,6 +18,12 @@
         emailWhenReviewed(app, req, 'Valid', '');
     }
 
+        // WBS 3.1.3 [Frontend] Manage scholarship requirement resubmissions
+    const handleRevise = async (app, req, note) => {
+        if (!await saveReview(`/sk/applications/${app.id}/documents`, { requirement: req, status: 'Revise', note })) return;
+        emailWhenReviewed(app, req, 'Revise', note);
+    }
+
     // an image opens in the viewer, a PDF opens in a new tab
     // WBS 3.1.2 [Frontend] Review and validate scholarship requirements
     const handleZoom = async (app, req) => {
