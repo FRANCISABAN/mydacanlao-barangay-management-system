@@ -103,6 +103,83 @@ const shrinkImage = async (dataUrl, type) => {
 }
 
 
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+/* ===== the shape of an application (the SK site uses these too) ===== */
+// the frontend sends / receives { id, uid, sid, status, note, sat, rejAt, reqs: { "Report Card": { id, name, type, status, note, img, at } } }
+export const toApplications = (apps, docs) => {
+    return apps.map((a) => {
+        const reqs = {};
+        docs.filter((d) => d.application_id === a.id).forEach((d) => {
+            const type = typeOfFile(d.file_path);
+            reqs[d.requirement] = {
+                id: String(d.id),
+                name: d.file_name,
+                by: d.student_name,
+                type,
+                status: d.status,
+                note: d.note || '',
+                // only images get a preview, a PDF is opened by the SK in a new tab
+                img: type.startsWith('image/') ? readFileAsDataUri(d.file_path) : '',
+                at: Number(d.uploaded_at),
+            };
+        });
+
+        return {
+            id: String(a.id),
+            uid: a.uid,
+            sid: String(a.scholarship_id),
+            status: a.status,
+            note: a.note || '',
+            sat: a.submitted_at ? Number(a.submitted_at) : undefined,
+            rejAt: a.rejected_at ? Number(a.rejected_at) : undefined,
+            reqs,
+        };
+    });
+}
+
+// the requirements of a scholarship are saved as a JSON list
+export const requirementsOf = (scholarship) => {
+    try {
+        return JSON.parse(scholarship.requirements) || [];
+    } catch {
+        return [];
+    }
+}
+
+export const toId = (value, label) => {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n <= 0) {
+        throw new ValidationError(`Invalid ${label}.`, 400);
+    }
+    return n;
+}
+
+
+/* ===== student account ===== */
+// remove the password hash before anything leaves the backend
+const publicStudent = ({ id, name, email, address }) => ({ id, name, email, address });
+
+export const fetchAllStudents = async () => {
+ const students = await studentModels.fetchAllStudents();
+ return students;
+}
+
+const doesStudentExist = async (student) => {
+    let existing;
+    if(Object.hasOwn(student, "id")) {
+       existing = await studentModels.findStudentById(student.id);
+    } else {
+       existing = await studentModels.findStudentByEmail(student.email);
+    }
+  if (existing.length > 0) {
+    return true;
+
+    }
+
+ return false;
+}
+
+// Nagpapadala ng verification code bago mag-register.
 // WBS 4.1.1 [Backend] Implement student account registration
 export const requestRegistrationOTP = async (email) => {
     const cleaned = String(email || '').trim().toLowerCase();
@@ -206,6 +283,16 @@ const mustHaveStudent = async (studentId) => {
 }
 
 // the application must belong to this student
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+const ownApplication = async (studentId, applicationId) => {
+    const sid = await mustHaveStudent(studentId);
+    const rows = await studentModels.findApplicationById(toId(applicationId, 'application id'));
+    if (rows.length === 0 || rows[0].student_id !== sid) {
+        throw new ValidationError('Application not found.', 404);
+    }
+    return rows[0];
+}
+
 // WBS 4.2.1 [Backend] View available scholarships and create applications
 const scholarshipOf = async (scholarshipId) => {
     const rows = await studentModels.findScholarshipForApply(scholarshipId);
@@ -217,6 +304,15 @@ const scholarshipOf = async (scholarshipId) => {
 
 const isOpen = (scholarship) => new Date(scholarship.deadline + 'T23:59:59') >= new Date();
 
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+export const fetchApplications = async (studentId) => {
+    const id = await mustHaveStudent(studentId);
+    const apps = await studentModels.fetchApplicationsByStudent(id);
+    const docs = await studentModels.fetchDocumentsOf(apps.map((a) => a.id));
+    return toApplications(apps, docs);
+}
+
+// apply = start a Draft. Not allowed after the deadline, and not twice.
 // WBS 4.2.1 [Backend] View available scholarships and create applications
 export const applyForScholarship = async (studentId, scholarshipId) => {
     const id = await mustHaveStudent(studentId);
