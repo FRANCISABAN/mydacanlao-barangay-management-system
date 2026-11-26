@@ -1,4 +1,10 @@
 import pool from '../config/db.js';
+// includes the password hash, only used by the login check
+// WBS 3.1.6 [Backend] Implement SK role-based access permissions
+export const findSkByEmail = async (email) => {
+  const [rows] = await pool.query('SELECT * FROM sk WHERE email = ?', [email]);
+  return rows;
+};
 
 /* ===== applications of the students (the SK reviews them) ===== */
 // the file itself is in the uploads folder, the database only has its name (file_path).
@@ -50,3 +56,4 @@ export const updateApplication = async (id, changes) => {
   );
   return result.affectedRows;
 };
+

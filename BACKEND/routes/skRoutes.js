@@ -2,6 +2,9 @@ import express from 'express';
 import * as skController from '../controllers/skController.js';
 
 const skRoutes = express.Router();
+// SK accounts are inserted in the database (see database.sql), so there is only a login.
+// WBS 3.1.6 [Backend] Implement SK role-based access permissions
+skRoutes.post('/login', skController.login);
 
 // WBS 3.1.1 [Backend] Display, search, and view scholarship applications
 skRoutes.get('/applications', skController.getApplications);

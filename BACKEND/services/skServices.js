@@ -3,6 +3,36 @@ import ValidationError from '../utils/ValidationError.js';
 import bcrypt from 'bcryptjs';
 import { toApplications, requirementsOf, toId, readFileAsDataUri } from './studentServices.js';
 
+
+const doesSkExist = async (email) => {
+const existing = await skModels.findSkByEmail(email);
+if (existing.length > 0) {
+    return {result: true, sk: existing[0]};
+}
+return {result: false, sk: undefined};
+};
+
+// SK accounts are NOT created through the website. They are inserted in the database (see database.sql).
+// WBS 3.1.6 [Backend] Implement SK role-based access permissions
+export const login = async (sk) => {
+    if (!sk.email || !sk.password) {
+        throw new ValidationError('Email and password are required!', 400);
+    }
+
+    const existing = await doesSkExist(sk.email);
+    if (!existing.result) {
+        throw new ValidationError('Wrong email or password.', 401);
+    }
+
+    const isCorrectPassword = await bcrypt.compare(sk.password, existing.sk.password);
+
+    if (!isCorrectPassword) {
+        throw new ValidationError('Wrong email or password.', 401);
+    }
+
+    const { id, name, email, position } = existing.sk;
+    return { id, name, email, position };
+}
 /* ===== reviewing the applications of the students ===== */
 // WBS 3.1.1 [Backend] Display, search, and view scholarship applications
 export const fetchApplications = async () => {
