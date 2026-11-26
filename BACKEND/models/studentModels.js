@@ -53,6 +53,21 @@ export const remove = async (id) => {
 // the file itself is in the uploads folder, the database only has its name (file_path).
 const DOC_COLS = "id, application_id, requirement, file_name, file_path, student_name, status, note, UNIX_TIMESTAMP(uploaded_at) * 1000 AS uploaded_at";
 
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+export const fetchApplicationsByStudent = async (studentId) => {
+  const [rows] = await pool.query(
+    `SELECT a.id, a.student_id, s.email AS uid, a.scholarship_id, a.status, a.note, a.submitted_at, a.rejected_at
+     FROM application a JOIN student s ON s.id = a.student_id
+     WHERE a.student_id = ? ORDER BY a.id`, [studentId]);
+  return rows;
+};
+
+export const fetchDocumentsOf = async (applicationIds) => {
+  if (applicationIds.length === 0) return [];
+  const [rows] = await pool.query(`SELECT ${DOC_COLS} FROM application_document WHERE application_id IN (?)`, [applicationIds]);
+  return rows;
+};
+
 // WBS 4.2.1 [Backend] View available scholarships and create applications
 export const findScholarshipForApply = async (id) => {
   const [rows] = await pool.query("SELECT id, title, DATE_FORMAT(deadline, '%Y-%m-%d') AS deadline, requirements FROM sk_scholarship WHERE id = ?", [id]);

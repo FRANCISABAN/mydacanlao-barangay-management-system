@@ -27,6 +27,42 @@ const StudentDocumentChip = ({ upload }) => {
 }
 
 // Label ng application status.
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentStatusChip = ({ status }) => {
+  return (
+    <span className={`chip ${status}`}>{status}</span>
+  )
+}
+
+// Mga hakbang ng application.
+const STEPS = ["Draft", "Submitted", "Under review", "Decision"];
+const POSITION = { Draft: 0, Pending: 1, "Under Review": 2, Approved: 3, Rejected: 3 };
+
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentProgressSteps = ({ status }) => {
+  const current = POSITION[status] ?? 0;
+  const rejected = status === "Rejected";
+  const approved = status === "Approved";
+
+  return (
+    <div className="jr">
+      {STEPS.map((label, k) => {
+        const done = k < current || (k === 3 && approved);
+        const state = done ? "done" : k === current ? (rejected ? "bad" : "on") : "";
+
+        return (
+          <div key={label} className={`js ${state}`}>
+            <b>{done ? "✓" : rejected && k === 3 ? "!" : k + 1}</b>
+            {label}
+          </div>
+        )
+      })}
+      <span className="jl"><u style={{ width: `${current / 3 * 100}%` }}></u></span>
+    </div>
+  )
+}
+
+// Progress ng naipasa na documents.
 // WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
 // WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
 const StudentRequirementBar = ({ app, reqs }) => {
