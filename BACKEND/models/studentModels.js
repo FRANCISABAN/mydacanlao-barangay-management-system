@@ -53,3 +53,29 @@ export const remove = async (id) => {
 // the file itself is in the uploads folder, the database only has its name (file_path).
 const DOC_COLS = "id, application_id, requirement, file_name, file_path, student_name, status, note, UNIX_TIMESTAMP(uploaded_at) * 1000 AS uploaded_at";
 
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+export const findScholarshipForApply = async (id) => {
+  const [rows] = await pool.query("SELECT id, title, DATE_FORMAT(deadline, '%Y-%m-%d') AS deadline, requirements FROM sk_scholarship WHERE id = ?", [id]);
+  return rows;
+};
+
+export const findApplicationById = async (id) => {
+  const [rows] = await pool.query('SELECT * FROM application WHERE id = ?', [id]);
+  return rows;
+};
+
+export const findApplicationOfStudent = async (studentId, scholarshipId) => {
+  const [rows] = await pool.query('SELECT id FROM application WHERE student_id = ? AND scholarship_id = ?', [studentId, scholarshipId]);
+  return rows;
+};
+
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+export const insertApplication = async (studentId, scholarshipId) => {
+  const [result] = await pool.query(
+    "INSERT INTO application (student_id, scholarship_id, status) VALUES (?, ?, 'Draft')",
+    [studentId, scholarshipId]
+  );
+  return result.insertId;
+};
+
+// only these columns can be changed

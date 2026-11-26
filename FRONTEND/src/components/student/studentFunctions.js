@@ -89,6 +89,78 @@ export const requirementsOf = (app, scholarships) => {
 }
 
 // Tinitingnan kung puwede pang mag-apply.
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+export const isOpen = (scholarship) => {
+    return !scholarship.deadline || new Date(scholarship.deadline + 'T23:59:59') >= new Date();
+}
+
+// a closed scholarship stays in the list for one more day (it shows "Closed"), then it disappears
+// Tinitingnan kung dapat pang ipakita ang scholarship.
+export const isListed = (scholarship) => {
+    if (!scholarship.deadline) return true;
+    const lastDayShown = new Date(scholarship.deadline + 'T23:59:59');
+    lastDayShown.setDate(lastDayShown.getDate() + 1);
+    return lastDayShown >= new Date();
+}
+
+// counts by calendar day: 0 = the deadline is today
+const daysLeft = (scholarship) => {
+    return Math.round((new Date(scholarship.deadline + 'T00:00:00') - new Date(new Date().toDateString())) / 864e5);
+}
+
+// Text kung ilang araw pa ang deadline.
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+export const deadlineText = (scholarship) => {
+    if (!isOpen(scholarship)) return 'Closed';
+    const n = daysLeft(scholarship);
+    return n > 1 ? n + ' days left' : n === 1 ? '1 day left' : 'Last day';
+}
+
+// Kulay para sa deadline.
+export const deadlineClass = (scholarship) => {
+    if (!isOpen(scholarship)) return 'bad';
+    return daysLeft(scholarship) <= 7 ? 'warn' : 'good';
+}
+
+/* ===== scholarships from the backend ===== */
+// scholarship from the backend = { id, title, desc, deadline, reqs }
+// Inaayos ang scholarship data mula sa backend.
+export const toScholarship = (row) => ({
+    id: String(row.id),
+    title: row.title,
+    desc: row.desc || '',
+    deadline: row.deadline || '',
+    reqs: Array.isArray(row.reqs) && row.reqs.length ? row.reqs : DEFAULT_REQS.slice(),
+});
+
+/* ===== people ===== */
+// Hinahanap ang student gamit ang email.
+export const findStudent = (students, email) => {
+    return students.find((s) => String(s.email).toLowerCase() === String(email).toLowerCase());
+}
+
+// the student of an application (falls back to the email if the backend does not know the student)
+// Kinukuha ang detalye ng student.
+export const studentOf = (students, email) => {
+    return findStudent(students, email) || { name: String(email).split('@')[0], email, address: '' };
+}
+
+// Ginagawang initials ang pangalan.
+export const initials = (name) => {
+    return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
+// --- studentFunctions ---
+// Helpers used only by the STUDENT side (no React in here).
+
+// Bumabati ayon sa oras.
+export const greeting = () => {
+    const hour = new Date().getHours();
+    return hour < 12 ? 'Magandang umaga' : hour < 18 ? 'Magandang hapon' : 'Magandang gabi';
+}
+
+// Only addresses in Dacanlao, City of Calaca, Batangas are allowed (any format, but barangay + municipality + province must be there)
+// Tinitingnan kung pasok ang address.
 // WBS 4.1.1 [Frontend] Implement student account registration
 export const isValidAddress = (address) => {
     const words = String(address).toLowerCase().replace(/[^a-z0-9ñ\s]/g, ' ').split(/\s+/);

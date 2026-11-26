@@ -90,3 +90,51 @@ const StudentHeader = ({ me, tab, onTab, onLogout, unread = 0 }) => {
 }
 
 // Welcome message at progress ng student.
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentHome = ({ me, apps, valid, scholarships, onTab }) => {
+  const [title, text, button] = nextStep(apps, scholarships);
+
+  return (
+    <>
+      <div className="stats">
+        <StudentStatCard value={apps.length} label="Submissions" color="#fcd116" icon="file" />
+        <StudentStatCard value={valid} label="Validated documents" color="#12b07a" icon="check" />
+        <StudentStatCard value={apps.filter((a) => a.status === "Pending" || a.status === "Under Review").length} label="Under review" color="#1769ff" icon="clock" />
+        <StudentStatCard value={apps.filter((a) => a.status === "Approved").length} label="Approved" color="#ce1126" icon="award" />
+      </div>
+
+      <div className="card row">
+        <div>
+          <span className="chip">Next step</span>
+          <h3 style={{ marginTop: 8 }}>{title}</h3>
+          <p className="mut" style={{ margin: "4px 0 0" }}>{text}</p>
+        </div>
+        <button className="p" disabled={button === "Closed"} onClick={() => onTab("sub")}>{button}</button>
+      </div>
+
+      <div className="card">
+        <span className="chip">Updates by email</span>
+        <h3 style={{ marginTop: 8 }}>Check your Gmail</h3>
+        <p className="mut" style={{ margin: "4px 0 0" }}>
+          Validation results and the final decision on your application are sent to <strong>{me.email}</strong>.
+        </p>
+      </div>
+    </>
+  )
+}
+
+// Maliit na message na kusang nawawala.
+const StudentToast = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, Math.max(2600, message.text.length * 60));
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  return (
+    <div className="toast" role="status">{message.text}</div>
+  )
+}
+
+// Ginagamit ng ibang page ang mga component na ito.
+// In-system notifications: the same messages that are sent to the Gmail of the student.

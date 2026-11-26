@@ -112,6 +112,27 @@ const fail = (res, e) => {
     });
 }
 
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+export const getApplications = async (req, res) => {
+    try {
+        const applications = await studentServices.fetchApplications(req.params.id);
+        res.status(200).json(applications);
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+export const applyForScholarship = async (req, res) => {
+    try {
+        const applicationId = await studentServices.applyForScholarship(req.params.id, req.body.scholarship_id);
+        res.status(200).json({ success: true, message: applicationId });
+    } catch (e) {
+        fail(res, e);
+    }
+}
+
 // WBS 4.1.2 [Backend] Implement student login and logout
 // Logout: the token of the student stops working.
 export const logout = (req, res) => {

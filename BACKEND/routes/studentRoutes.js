@@ -15,3 +15,8 @@ studentRoutes.put('/:id', requireStudent, studentController.editStudent);
 studentRoutes.delete('/:id', requireStudent, studentController.deleteStudent);
 
 // applications and uploaded documents of one student
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
+studentRoutes.get('/:id/applications', requireStudent, studentController.getApplications);
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+studentRoutes.post('/:id/applications', requireStudent, studentController.applyForScholarship);

@@ -132,3 +132,38 @@ const mustHaveStudent = async (studentId) => {
 }
 
 // the application must belong to this student
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+const scholarshipOf = async (scholarshipId) => {
+    const rows = await studentModels.findScholarshipForApply(scholarshipId);
+    if (rows.length === 0) {
+        throw new ValidationError('Scholarship does not exist!', 404);
+    }
+    return rows[0];
+}
+
+const isOpen = (scholarship) => new Date(scholarship.deadline + 'T23:59:59') >= new Date();
+
+// WBS 4.2.1 [Backend] View available scholarships and create applications
+export const applyForScholarship = async (studentId, scholarshipId) => {
+    const id = await mustHaveStudent(studentId);
+    const scholarship = await scholarshipOf(toId(scholarshipId, 'scholarship id'));
+
+    if (!isOpen(scholarship)) {
+        throw new ValidationError('This scholarship is closed.', 400);
+    }
+
+    const existing = await studentModels.findApplicationOfStudent(id, scholarship.id);
+    if (existing.length > 0) {
+        throw new ValidationError('You already applied for this scholarship.', 409);
+    }
+
+    try {
+        return await studentModels.insertApplication(id, scholarship.id);
+    } catch (e) {
+        if (e.code === 'ER_DUP_ENTRY') {
+            throw new ValidationError('You already applied for this scholarship.', 409);
+        }
+        throw e;
+    }
+}
+
