@@ -1,233 +1,203 @@
-// STUDENT - API AT MGA HELPER
-// Dito ang API, checks, at simpleng helper functions.
+// STUDENT - HOME AT LAYOUT
+// Magkakasama rito ang mga connected na bahagi ng page.
 
-// --- studentCommonApi ---
-// STUDENT side only. Talks to the backend (BACKEND/app.js, port 3000) which also sends Gmail emails.
-// Relative URL: gumagana sa PC at phone gamit ang iisang Vite link.
-const BASE = import.meta.env?.VITE_API_URL || '/backend';
+import { useEffect } from 'react';
+import { greeting, initials, isOpen } from './studentFunctions';
+
+import skLogo from '../../assets/sk-logo.png';
+
+// Logo ng SK. Ginagamit lang sa landing page kapalit ng araw.
+const StudentLogo = ({ className = '' }) => {
+  return <img className={`stlogo ${className}`} src={skLogo} alt="Sangguniang Kabataan Barangay Dacanlao" />
+}
+
+// Malaking araw (ginagamit pa rin sa ibang page).
+const RAYS = [0, 1, 2, 3, 4, 5, 6, 7];
+
+const StudentSun = () => {
+  return (
+    <svg className="sun" viewBox="-320 -320 640 640" aria-hidden="true">
+      {RAYS.map((i) => (
+        <g key={i}>
+          <path d="M0 -300 L26 -120 L-26 -120Z" transform={`rotate(${i * 45})`} fill="#fcd116" opacity=".17" />
+          <path d="M0 -240 L12 -120 L-12 -120Z" transform={`rotate(${i * 45 + 22.5})`} fill="#fcd116" opacity=".12" />
+        </g>
+      ))}
+      <circle r="90" fill="#fcd116" opacity=".2" />
+      <circle r="52" fill="#fcd116" opacity=".35" />
+    </svg>
+  )
+}
+
+// Maliit na logo sa header.
+const MINI_RAYS = [0, 1, 2, 3, 4, 5, 6, 7];
+
+const StudentSunMini = () => {
+  return (
+    <svg viewBox="-50 -50 100 100" aria-hidden="true">
+      {MINI_RAYS.map((i) => (
+        <path key={i} d="M0 -48 L7 -24 L-7 -24Z" transform={`rotate(${i * 45})`} fill="#fcd116" />
+      ))}
+      <circle r="17" fill="#fcd116" />
+    </svg>
+  )
+}
+
+// Icon na ginagamit sa mga card.
+const PATHS = {
+  home: "M3 11l9-8 9 8v10h-6v-6H9v6H3z",
+  star: "M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z",
+  file: "M6 2h9l5 5v15H6zM14 2v6h6",
+  users: "M16 8a4 4 0 10-8 0 4 4 0 008 0M4 21c0-4 4-6 8-6s8 2 8 6",
+  check: "M5 13l4 4L19 7",
+  clock: "M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0",
+  award: "M12 14a6 6 0 100-12 6 6 0 000 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"
+}
+
+const StudentIcon = ({ name }) => {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d={PATHS[name]} />
+    </svg>
+  )
+}
+
+// Menu at logout ng student.
+const TABS = [["home", "Home"]];
 
 // WBS 4.1.2 [Frontend] Implement student login and logout
-// Login session of the student. It is saved in sessionStorage, so a refresh does not log the student out.
-const TOKEN_KEY = 'studentToken';
-const ME_KEY = 'studentMe';
-
-export const getToken = () => {
-    try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
-}
-
-export const getSavedStudent = () => {
-    try { return getToken() ? JSON.parse(sessionStorage.getItem(ME_KEY)) : null; } catch { return null; }
-}
-
-// saveSession(token, student) after login; saveSession() after logout
-export const saveSession = (token, student) => {
-    try {
-        if (token) {
-            sessionStorage.setItem(TOKEN_KEY, token);
-            sessionStorage.setItem(ME_KEY, JSON.stringify(student));
-        } else {
-            sessionStorage.removeItem(TOKEN_KEY);
-            sessionStorage.removeItem(ME_KEY);
-        }
-    } catch { /* storage blocked: the student just logs in again after a refresh */ }
-}
-
-// Kumukuha o nagsa-save ng data sa backend. The token goes with every request.
-export const call = async (path, options = {}) => {
-    let response;
-    const token = getToken();
-
-    try {
-        response = await fetch(BASE + path, {
-            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
-            ...options,
-        });
-    } catch {
-        throw new Error('Cannot reach the backend. Start it: open BACKEND, then run  node app.js');
-    }
-
-    let data = null;
-    try {
-        data = await response.json();
-    } catch {
-        // the backend sent no JSON
-    }
-
-    if (!response.ok) {
-        const error = new Error(data?.error || `The backend returned an error (${response.status}). Check the backend console.`);
-        error.status = response.status; // 401 = the session ended
-        throw error;
-    }
-
-    return data;
-}
-
-// Inihahanda ang data bago ipadala.
-export const send = (method, body) => ({ method, body: JSON.stringify(body) });
-
-// Email notifications ay idinadaan sa BACKEND (wala nang frontend email server).
-export const sendEmails = async (messages) => {
-    try {
-        const response = await call('/notifications/send-email', send('POST', { messages }));
-        return { ok: response.ok === true, error: response.error || '' };
-    } catch (error) {
-        return { ok: false, error: error.message };
-    }
-}
-
-// --- studentCommonHelpers ---
-// Shared helpers of the student site only (no React in here). The other site has its own copy in common/sk/.
-
-export const DEFAULT_REQS = ['Barangay Clearance', 'Report Card', 'Certificate of Enrollment', 'Proof of Income'];
-
-/* ===== scholarship rules ===== */
-// the documents an application must have
-// Kinukuha ang documents na kailangan.
-export const requirementsOf = (app, scholarships) => {
-    const scholarship = scholarships.find((s) => s.id === app.sid);
-    return scholarship?.reqs?.length ? scholarship.reqs : DEFAULT_REQS;
-}
-
-// Tinitingnan kung puwede pang mag-apply.
-// WBS 4.2.1 [Frontend] View available scholarships and create applications
-export const isOpen = (scholarship) => {
-    return !scholarship.deadline || new Date(scholarship.deadline + 'T23:59:59') >= new Date();
-}
-
-// a closed scholarship stays in the list for one more day (it shows "Closed"), then it disappears
-// Tinitingnan kung dapat pang ipakita ang scholarship.
-export const isListed = (scholarship) => {
-    if (!scholarship.deadline) return true;
-    const lastDayShown = new Date(scholarship.deadline + 'T23:59:59');
-    lastDayShown.setDate(lastDayShown.getDate() + 1);
-    return lastDayShown >= new Date();
-}
-
-// counts by calendar day: 0 = the deadline is today
-const daysLeft = (scholarship) => {
-    return Math.round((new Date(scholarship.deadline + 'T00:00:00') - new Date(new Date().toDateString())) / 864e5);
-}
-
-// Text kung ilang araw pa ang deadline.
-// WBS 4.2.1 [Frontend] View available scholarships and create applications
-export const deadlineText = (scholarship) => {
-    if (!isOpen(scholarship)) return 'Closed';
-    const n = daysLeft(scholarship);
-    return n > 1 ? n + ' days left' : n === 1 ? '1 day left' : 'Last day';
-}
-
-// Kulay para sa deadline.
-export const deadlineClass = (scholarship) => {
-    if (!isOpen(scholarship)) return 'bad';
-    return daysLeft(scholarship) <= 7 ? 'warn' : 'good';
-}
-
-/* ===== scholarships from the backend ===== */
-// scholarship from the backend = { id, title, desc, deadline, reqs }
-// Inaayos ang scholarship data mula sa backend.
-export const toScholarship = (row) => ({
-    id: String(row.id),
-    title: row.title,
-    desc: row.desc || '',
-    deadline: row.deadline || '',
-    reqs: Array.isArray(row.reqs) && row.reqs.length ? row.reqs : DEFAULT_REQS.slice(),
-});
-
-/* ===== people ===== */
-// Hinahanap ang student gamit ang email.
-export const findStudent = (students, email) => {
-    return students.find((s) => String(s.email).toLowerCase() === String(email).toLowerCase());
-}
-
-// the student of an application (falls back to the email if the backend does not know the student)
-// Kinukuha ang detalye ng student.
-export const studentOf = (students, email) => {
-    return findStudent(students, email) || { name: String(email).split('@')[0], email, address: '' };
-}
-
-// Ginagawang initials ang pangalan.
-export const initials = (name) => {
-    return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-}
-
-// --- studentFunctions ---
-// Helpers used only by the STUDENT side (no React in here).
-
-// Bumabati ayon sa oras.
-export const greeting = () => {
-    const hour = new Date().getHours();
-    return hour < 12 ? 'Magandang umaga' : hour < 18 ? 'Magandang hapon' : 'Magandang gabi';
-}
-
-// Only addresses in Dacanlao, City of Calaca, Batangas are allowed (any format, but barangay + municipality + province must be there)
-// Tinitingnan kung pasok ang address.
-// WBS 4.1.1 [Frontend] Implement student account registration
-export const isValidAddress = (address) => {
-    const words = String(address).toLowerCase().replace(/[^a-z0-9ñ\s]/g, ' ').split(/\s+/);
-    return ['dacanlao', 'calaca', 'batangas'].every((w) => words.includes(w));
-}
-
-/* ===== uploaded files ===== */
-// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
-export const MAX_FILE_MB = 3;
-const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-
-// what the upload buttons accept (the backend checks the type and size again)
-export const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
-
-// returns the problem as text, or '' when the file is fine
-// Tinitingnan ang size at uri ng file.
-export const checkFile = (file) => {
-    if (!IMAGE_TYPES.includes(file.type) && file.type !== 'application/pdf') {
-        return 'Only JPG, PNG, WEBP images or PDF files are allowed.';
-    }
-    if (file.size > MAX_FILE_MB * 1024 * 1024) {
-        return `The file is too big. The maximum is ${MAX_FILE_MB} MB.`;
-    }
-    return '';
-}
-
-// Gives back { type, data } where data is the file as text (a data URL) that the backend saves.
-// Images are shrunk first. A PDF is sent as it is, so the SK can open it.
-// Binabasa at inaayos ang ia-upload na file.
-export const readUpload = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error('Could not read that file.'));
-        reader.onload = () => {
-            if (file.type === 'application/pdf') {
-                resolve({ type: 'application/pdf', data: reader.result });
-                return;
-            }
-
-            const image = new Image();
-            image.onload = () => {
-                const scale = Math.min(1, 900 / Math.max(image.width, image.height));
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.round(image.width * scale);
-                canvas.height = Math.round(image.height * scale);
-                canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-                resolve({ type: 'image/jpeg', data: canvas.toDataURL('image/jpeg', 0.72) });
-            };
-            image.onerror = () => reject(new Error('Could not read that image.'));
-            image.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-// --- studentCommonNotify ---
-// Emails students through the BACKEND. Used by the student site.
-
-// Gumagawa at nagpapadala ng email notification.
 // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
-export const notifyStudents = async (students, emails, subject, text, showToast) => {
-    const messages = emails.map((to) => ({ to, name: studentOf(students, to).name, subject, text }));
-    if (!messages.length) return;
-
-    showToast('Saved. Sending email...');
-    const result = await sendEmails(messages);
-    showToast(result.ok
-        ? `Email sent to ${messages.length} student${messages.length > 1 ? 's' : ''}.`
-        : `Saved, but the email was not sent. ${result.error}`);
+const StudentHeader = ({ me, tab, onTab, onLogout, unread = 0 }) => {
+  return (
+    <header className="st-top">
+      <div className="brand"><StudentSunMini /><b>SK Scholarship</b></div>
+      <nav>
+        {TABS.map(([key, label]) => (
+          <button key={key} className={tab === key ? "on" : ""} onClick={() => onTab(key)}>
+            {label}
+          </button>
+        ))}
+      </nav>
+      <span className="avs" title={me.name}>{initials(me.name)}</span>
+      <button onClick={onLogout}>Log out</button>
+    </header>
+  )
 }
+
+// Welcome message at progress ng student.
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentBanner = ({ me, hasApps, valid, total }) => {
+  const progress = total ? valid / total : 0;
+
+  return (
+    <div className="banner">
+      <StudentSun />
+      <div className="bt">
+        <small>Student Account and Scholarship Submission Management</small>
+        <h2>{greeting()}, {me.name.split(" ")[0]}!</h2>
+        <p>{hasApps ? `${valid} of ${total} documents validated.` : "Pick a scholarship to start your application."}</p>
+      </div>
+      <div className="ring">
+        <svg viewBox="0 0 80 80" width="96" height="96">
+          <circle className="t" cx="40" cy="40" r="34" />
+          <circle className="v" cx="40" cy="40" r="34" style={{ strokeDashoffset: 214 * (1 - progress) }} />
+        </svg>
+        <b>{Math.round(progress * 100)}%</b>
+      </div>
+    </div>
+  )
+}
+
+// Maliit na card para sa bilang.
+const StudentStatCard = ({ value, label, color, icon }) => {
+  return (
+    <div className="stat" style={{ '--c': color }}>
+      <i className="si"><StudentIcon name={icon} /></i>
+      <b>{value}</b>
+      <span>{label}</span>
+    </div>
+  )
+}
+
+// Buod at susunod na gagawin ng student.
+const nextStep = (apps, scholarships) => {
+  const rejected = apps.some((a) => a.status === "Rejected");
+  const needsFix = apps.some((a) => Object.values(a.reqs).some((q) => q.status === "Revise"));
+  const draft = apps.some((a) => a.status === "Draft");
+
+  if (rejected) return ["Your application was rejected", "Upload corrected documents, then resubmit for review.", "Fix now"];
+  if (needsFix) return ["Fix the documents that need revision", "The SK left a comment. Change the file and it goes back for review.", "Fix now"];
+  // Kapag walang open scholarship, closed muna ang application.
+  if (!apps.length && !scholarships.some(isOpen)) return ["Scholarship applications are closed", "Wait for the SK to post a new scholarship.", "Closed"];
+  if (!apps.length) return ["Choose a scholarship", "Open Scholarship Submission and apply.", "Apply now"];
+  if (draft) return ["Finish your submission", "Upload every document, then submit for review.", "Continue"];
+  return ["Track your submissions", "Check the status of your documents.", "View submissions"];
+}
+
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+const StudentHome = ({ me, apps, valid, scholarships, onTab }) => {
+  const [title, text, button] = nextStep(apps, scholarships);
+
+  return (
+    <>
+      <div className="stats">
+        <StudentStatCard value={apps.length} label="Submissions" color="#fcd116" icon="file" />
+        <StudentStatCard value={valid} label="Validated documents" color="#12b07a" icon="check" />
+        <StudentStatCard value={apps.filter((a) => a.status === "Pending" || a.status === "Under Review").length} label="Under review" color="#1769ff" icon="clock" />
+        <StudentStatCard value={apps.filter((a) => a.status === "Approved").length} label="Approved" color="#ce1126" icon="award" />
+      </div>
+
+      <div className="card row">
+        <div>
+          <span className="chip">Next step</span>
+          <h3 style={{ marginTop: 8 }}>{title}</h3>
+          <p className="mut" style={{ margin: "4px 0 0" }}>{text}</p>
+        </div>
+        <button className="p" disabled={button === "Closed"} onClick={() => onTab("sub")}>{button}</button>
+      </div>
+
+      <div className="card">
+        <span className="chip">Updates by email</span>
+        <h3 style={{ marginTop: 8 }}>Check your Gmail</h3>
+        <p className="mut" style={{ margin: "4px 0 0" }}>
+          Validation results and the final decision on your application are sent to <strong>{me.email}</strong>.
+        </p>
+      </div>
+    </>
+  )
+}
+
+// Maliit na message na kusang nawawala.
+const StudentToast = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, Math.max(2600, message.text.length * 60));
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  return (
+    <div className="toast" role="status">{message.text}</div>
+  )
+}
+
+// Ginagamit ng ibang page ang mga component na ito.
+// In-system notifications: the same messages that are sent to the Gmail of the student.
+// WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
+const StudentNotifications = ({ notifications }) => (
+  <section className="notifs">
+    <h2>Notifications</h2>
+    {notifications.length === 0 && <p className="empty">No notifications yet. Updates about your application will show here.</p>}
+    {notifications.map((n) => (
+      <article key={n.id} className={"notif" + (n.read ? "" : " new")}>
+        <div className="notif-top">
+          <b>{n.subject}</b>
+          {!n.read && <span className="nnew">New</span>}
+          <small>{new Date(n.at).toLocaleString()}</small>
+        </div>
+        <p>{n.text}</p>
+      </article>
+    ))}
+  </section>
+)
+
+export { StudentNotifications, StudentLogo, StudentSun, StudentSunMini, StudentIcon, StudentHeader, StudentBanner, StudentStatCard, StudentHome, StudentToast };

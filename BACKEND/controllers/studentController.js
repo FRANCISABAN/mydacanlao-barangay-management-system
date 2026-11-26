@@ -44,63 +44,13 @@ export const createAccount = async (req, res) => {
     }
 }
 
-// WBS 4.1.2 [Backend] Implement student login and logout
-export const login = async (req, res) => {
-    const {email, password} = req.body;
-    const student = {email, password};
+// WBS 4.1.2 [Backend] Implement student login and logout — implementation in later step
 
-    try{
-        const result = await studentServices.login(student);
-        res.status(200).json({
-            success: true,
-            message: result,
-            token: startSession(result.id)
-        });
-    }catch(e){
-        res.status(e.statusCode || 500).json({
-            error: e.message || "Internal Server Error"
-        });
-    }
-}
 
-export const editStudent = async (req, res) => {
-    const {name, address} = req.body;
-    const { id } = req.params;
-    const student = {id, name, address};
 
-    try {
-        const updatedStudent = await studentServices.updateStudent(student);
-        res.status(200).json({
-            success: true,
-            message: updatedStudent
-        });
-    } catch (e) {
-        console.log(e);
-        res.status(e.statusCode || 500).json({
-            success: false,
-            error: e.message
-        });
-    }
-}
 
 //delete
-export const deleteStudent = async (req, res) => {
-    const { id } = req.params;
 
-    try {
-        const deletedStudent = await studentServices.deleteStudent(parseInt(id));
-        res.status(200).json({
-            success: true,
-            message: deletedStudent
-        });
-    } catch (e) {
-        console.log(e);
-        res.status(e.statusCode || 500).json({
-            success: false,
-            error: e.message
-        });
-    }
-}
 
 
 /* ===== applications and uploaded documents of the student ===== */
@@ -113,62 +63,26 @@ const fail = (res, e) => {
 }
 
 // WBS 4.2.1 [Backend] View available scholarships and create applications
-// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
-export const getApplications = async (req, res) => {
-    try {
-        const applications = await studentServices.fetchApplications(req.params.id);
-        res.status(200).json(applications);
-    } catch (e) {
-        fail(res, e);
-    }
-}
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses — implementation in later step
 
-// WBS 4.2.1 [Backend] View available scholarships and create applications
-export const applyForScholarship = async (req, res) => {
-    try {
-        const applicationId = await studentServices.applyForScholarship(req.params.id, req.body.scholarship_id);
-        res.status(200).json({ success: true, message: applicationId });
-    } catch (e) {
-        fail(res, e);
-    }
-}
 
-// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
-export const uploadDocument = async (req, res) => {
-    const { requirement, file_name, file_type, file_data } = req.body;
+// WBS 4.2.1 [Backend] View available scholarships and create applications — implementation in later step
 
-    try {
-        const result = await studentServices.uploadDocument(req.params.id, req.params.appId, { requirement, file_name, file_type, file_data });
-        res.status(200).json({ success: true, message: result });
-    } catch (e) {
-        fail(res, e);
-    }
-}
 
-// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
-export const submitApplication = async (req, res) => {
-    try {
-        const result = await studentServices.submitApplication(req.params.id, req.params.appId);
-        res.status(200).json({ success: true, message: result });
-    } catch (e) {
-        fail(res, e);
-    }
-}
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements — implementation in later step
 
-// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
-export const resubmitApplication = async (req, res) => {
-    try {
-        const result = await studentServices.resubmitApplication(req.params.id, req.params.appId);
-        res.status(200).json({ success: true, message: result });
-    } catch (e) {
-        fail(res, e);
-    }
-}
+
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications — implementation in later step
+
+
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications — implementation in later step
+
 
 // WBS 4.1.2 [Backend] Implement student login and logout
 // Logout: the token of the student stops working.
-export const logout = (req, res) => {
-    endSession(tokenOf(req));
-    res.status(200).json({ success: true });
-}
+
+
+// WBS 4.4.1 [Backend] Display scholarship notifications and email updates — implementation in later step
+
+
 

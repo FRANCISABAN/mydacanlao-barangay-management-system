@@ -13,7 +13,7 @@ import '../../components/student/student-login.css'
 function StudentApp() {
 
   // a student who is still logged in (saved in sessionStorage) goes straight to the student pages
-  const [me, setMe] = useState(getSavedStudent);
+  const [me, setMe] = useState(null);
   const [view, setView] = useState(me ? 'student' : 'landing');
 
   const [scholarships, setScholarships] = useState([]);
@@ -35,19 +35,8 @@ function StudentApp() {
   // WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
   const loadRemote = useCallback(async () => {
     try {
-      const requests = [
-        call('/sk/scholarship/all'),
-        call('/student/all'),
-        call('/sk/applications/approved-count'),
-      ];
-      if (me) requests.push(call(`/student/${me.id}/applications`), call(`/student/${me.id}/notifications`));
-
-      const [scholarshipList, studentList, approved, applicationList, notificationList] = await Promise.all(requests);
-      setScholarships(scholarshipList.map(toScholarship));
+      const studentList = await call('/student/all');
       setStudents(studentList);
-      setApprovedCount(approved.message);
-      setApps(applicationList || []);
-      setNotifications(notificationList || []);
     } catch (e) {
       if (e.status === 401) {
         // the session ended (example: the backend was restarted): go back to the landing page
@@ -65,14 +54,15 @@ function StudentApp() {
   }, [loadRemote]);
 
   // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
-  const notify = (emails, subject, text) => notifyStudents(students, emails, subject, text, showToast);
+  const notify = (emails, subject, text) => showToast(text);
 
   // WBS 4.1.1 [Frontend] Implement student account registration
   // WBS 4.1.2 [Frontend] Implement student login and logout
   const handleLoggedIn = (account, token) => {
-    saveSession(token, account);
-    setMe(account);
-    setView('student');
+    saveSession();
+    setMe(null);
+    setView('landing');
+    showToast('Account created successfully.');
   }
 
   // WBS 4.1.2 [Frontend] Implement student login and logout

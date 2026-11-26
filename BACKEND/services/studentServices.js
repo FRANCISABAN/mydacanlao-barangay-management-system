@@ -225,51 +225,12 @@ export const createAccount = async (student) => {
     return publicStudent({ id: studentId, name: student.name, email: student.email, address });
 }
 
-// WBS 4.1.2 [Backend] Implement student login and logout
-export const login = async (student) => {
-    if (!student.email || !student.password) {
-        throw new ValidationError('Email and password are required!', 400);
-    }
+// WBS 4.1.2 [Backend] Implement student login and logout — implementation in later step
 
-    const existing = await studentModels.findStudentByEmail(student.email);
-    if (existing.length === 0) {
-        throw new ValidationError('Wrong email or password.', 401);
-    }
 
-    const isCorrectPassword = await bcrypt.compare(student.password, existing[0].password);
 
-    if (!isCorrectPassword) {
-        throw new ValidationError('Wrong email or password.', 401);
-    }
 
-    return publicStudent(existing[0]);
-}
 
-export const updateStudent = async (student) => {
-    if (!student.name || !student.address) {
-        throw new ValidationError('Name and address are required!', 400);
-    }
-    if (!isValidAddress(student.address)) {
-        throw new ValidationError(ADDRESS_ERROR, 400);
-    }
-
-    const existing = await doesStudentExist({ id: student.id });
-    if (!existing) {
-        throw new ValidationError('Student does not exist!', 404);
-    }
-
-    const updatedRows = await studentModels.update({ ...student, address: student.address.trim() });
-    return updatedRows;
-}
-
-export const deleteStudent = async (id) => {
-     const existing = await doesStudentExist({id});
-    if (!existing) {
-        throw new ValidationError('Student does not exist!', 404);
-    }
-    const deletedStudent = await studentModels.remove(id);
-    return deletedStudent;
-}
 
 
 /* ===== applications and uploaded documents of the student ===== */
@@ -304,142 +265,26 @@ const scholarshipOf = async (scholarshipId) => {
 
 const isOpen = (scholarship) => new Date(scholarship.deadline + 'T23:59:59') >= new Date();
 
-// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses
-export const fetchApplications = async (studentId) => {
-    const id = await mustHaveStudent(studentId);
-    const apps = await studentModels.fetchApplicationsByStudent(id);
-    const docs = await studentModels.fetchDocumentsOf(apps.map((a) => a.id));
-    return toApplications(apps, docs);
-}
+// WBS 4.4.2 [Backend] Track scholarship application and requirement statuses — implementation in later step
+
 
 // apply = start a Draft. Not allowed after the deadline, and not twice.
-// WBS 4.2.1 [Backend] View available scholarships and create applications
-export const applyForScholarship = async (studentId, scholarshipId) => {
-    const id = await mustHaveStudent(studentId);
-    const scholarship = await scholarshipOf(toId(scholarshipId, 'scholarship id'));
+// WBS 4.2.1 [Backend] View available scholarships and create applications — implementation in later step
 
-    if (!isOpen(scholarship)) {
-        throw new ValidationError('This scholarship is closed.', 400);
-    }
 
-    const existing = await studentModels.findApplicationOfStudent(id, scholarship.id);
-    if (existing.length > 0) {
-        throw new ValidationError('You already applied for this scholarship.', 409);
-    }
+// WBS 4.3.1 [Backend] Upload and manage scholarship requirements — implementation in later step
 
-    try {
-        return await studentModels.insertApplication(id, scholarship.id);
-    } catch (e) {
-        if (e.code === 'ER_DUP_ENTRY') {
-            throw new ValidationError('You already applied for this scholarship.', 409);
-        }
-        throw e;
-    }
-}
-
-// WBS 4.3.1 [Backend] Upload and manage scholarship requirements
-export const uploadDocument = async (studentId, applicationId, file) => {
-    const app = await ownApplication(studentId, applicationId);
-    const { requirement, file_name, file_type, file_data } = file;
-
-    if (!requirement || !file_name || !file_type || !file_data) {
-        throw new ValidationError('Requirement, file name, file type and file are required!', 400);
-    }
-    if (!ALLOWED_TYPES.includes(file_type)) {
-        throw new ValidationError('Only JPG, PNG, WEBP images or PDF files are allowed.', 400);
-    }
-    if (typeof file_data !== 'string' || !file_data.startsWith(`data:${file_type};base64,`)) {
-        throw new ValidationError('The file is not valid.', 400);
-    }
-    if (file_data.length > MAX_DATA_CHARS) {
-        throw new ValidationError(`The file is too big. The maximum is ${MAX_FILE_MB} MB.`, 400);
-    }
-
-    const scholarship = await scholarshipOf(app.scholarship_id);
-    if (!requirementsOf(scholarship).includes(requirement)) {
-        throw new ValidationError('That document is not required for this scholarship.', 400);
-    }
-
-    const existing = (await studentModels.findDocument(app.id, requirement))[0];
-    if (existing && existing.status === 'Valid') {
-        throw new ValidationError('This document is already validated and locked.', 409);
-    }
-    const needsRevision = existing && existing.status === 'Revise';
-    if (app.status === 'Approved' && !needsRevision) {
-        throw new ValidationError('This application is already approved.', 409);
-    }
-
-    // images are made smaller here too (the frontend already shrinks them, but the backend does not trust it)
-    const saved = file_type.startsWith('image/') ? await shrinkImage(file_data, file_type) : { type: file_type, data: file_data };
-
-    // the file is saved in the uploads folder, the database only keeps its name and who sent it
-    const student = (await studentModels.findStudentById(app.student_id))[0];
-    const filePath = saveUploadedFile(app.id, saved.data, saved.type);
-    await studentModels.saveDocument({
-        application_id: app.id,
-        requirement,
-        file_name: String(file_name).slice(0, 255),
-        file_path: filePath,
-        student_name: student.name,
-        uploaded_at: Date.now(),
-    });
-    // the old file of this requirement is not needed anymore
-    if (existing) deleteUploadedFile(existing.file_path);
-
-    // a corrected document goes back to the SK for review
-    if (needsRevision && (app.status === 'Pending' || app.status === 'Approved')) {
-        await studentModels.updateApplication(app.id, { status: 'Under Review' });
-    }
-
-    return { needsRevision: Boolean(needsRevision) };
-}
 
 // submit = Draft -> Pending. Only when every document is uploaded.
-// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications
-export const submitApplication = async (studentId, applicationId) => {
-    const app = await ownApplication(studentId, applicationId);
+// WBS 4.3.2 [Backend] Submit and resubmit scholarship applications — implementation in later step
 
-    if (app.status !== 'Draft') {
-        throw new ValidationError('Only a draft can be submitted.', 409);
-    }
-
-    const scholarship = await scholarshipOf(app.scholarship_id);
-    const uploaded = await studentModels.listUploadedRequirements(app.id);
-    const missing = requirementsOf(scholarship).filter((r) => !uploaded.includes(r));
-    if (missing.length > 0) {
-        throw new ValidationError(`Upload every document first. Missing: ${missing.join(', ')}`, 400);
-    }
-
-    return await studentModels.updateApplication(app.id, { status: 'Pending', submitted_at: Date.now() });
-}
 
 // resubmit = Rejected -> Pending. Only when at least one document was changed after the rejection.
-export const resubmitApplication = async (studentId, applicationId) => {
-    const app = await ownApplication(studentId, applicationId);
 
-    if (app.status !== 'Rejected') {
-        throw new ValidationError('Only a rejected application can be resubmitted.', 409);
-    }
-
-    const changed = await studentModels.countDocumentsChangedSince(app.id, app.rejected_at || 0);
-    if (changed === 0) {
-        throw new ValidationError('Change at least one document before you resubmit.', 400);
-    }
-
-    return await studentModels.updateApplication(app.id, { status: 'Pending', note: '' });
-}
 
 
 // WBS 4.4.1 [Backend] Display scholarship notifications and email updates
 /* ===== in-system notifications of one student ===== */
-export const fetchNotifications = async (studentId) => {
-    const id = await mustHaveStudent(studentId);
-    const rows = await studentModels.fetchNotifications(id);
-    return rows.map((n) => ({ id: n.id, subject: n.subject, text: n.message, read: !!n.is_read, at: Number(n.created_at) }));
-}
 
-export const readNotifications = async (studentId) => {
-    const id = await mustHaveStudent(studentId);
-    await studentModels.markNotificationsRead(id);
-    return { ok: true };
-}
+
+

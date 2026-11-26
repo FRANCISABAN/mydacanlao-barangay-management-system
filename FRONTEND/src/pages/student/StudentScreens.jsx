@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { StudentLogo, StudentSun, StudentSunMini, StudentHeader, StudentBanner, StudentHome, StudentNotifications } from '../../components/student/StudentHeaderAndHome';
-import { StudentSubmission } from '../../components/student/StudentApplicationForm';
+
 import { call, send, sendEmails, isOpen, isListed, isValidAddress, requirementsOf, checkFile, readUpload } from '../../components/student/studentFunctions';
 
 // Unang page bago mag-login.
@@ -128,7 +128,7 @@ function StudentLandingPage({ scholarships, studentCount, approvedCount, onLogin
 // WBS 4.1.1 [Frontend] Implement student account registration
 // WBS 4.1.2 [Frontend] Implement student login and logout
 function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
-    const [mode, setMode] = useState('login');
+    const [mode, setMode] = useState('reg');
     const [form, setForm] = useState({ name: '', address: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
@@ -184,20 +184,9 @@ function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
                 // Pangalawa: i-check ang OTP at saka gawin ang account.
                 const data = await call('/student/register', send('POST', { name, address, email, password, otp }));
 
-                // welcome email to the Gmail the student just registered (does not block the login)
-                sendEmails([{
-                    to: email,
-                    name,
-                    subject: 'Welcome to the SK Scholarship Portal',
-                    text: 'Your account has been created. You can now log in, choose a scholarship, and upload your requirements. Updates on your application will be sent to this email.',
-                }]).then((result) => showToast(result.ok
-                    ? `Welcome email sent to ${email}.`
-                    : `Account created, but the welcome email was not sent. ${result.error}`));
-
                 onLoggedIn({ role: 'student', ...data.message }, data.token);
             } else {
-                const data = await call('/student/login', send('POST', { email, password }));
-                onLoggedIn({ role: 'student', ...data.message }, data.token);
+                setError('Login is available in the next step.');
             }
         } catch (err) {
             setError(err.message);
@@ -251,7 +240,6 @@ function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
                         <p className="stl-mut">{registering ? 'Fill in your details. We will send a code to your Gmail.' : 'Welcome back! Log in to continue.'}</p>
 
                         <div className="seg">
-                            <button type="button" className={mode === 'login' ? 'on' : ''} onClick={() => setMode('login')}>Log in</button>
                             <button type="button" className={mode === 'reg' ? 'on' : ''} onClick={() => setMode('reg')}>New student</button>
                         </div>
 
@@ -339,130 +327,8 @@ function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
 // WBS 4.3.2 [Frontend] Submit and resubmit scholarship applications
 // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
 // WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
-function StudentPage({ me, scholarships, apps, notifications, notify, showToast, loadRemote, onLogout }) {
-    const [tab, setTab] = useState('home');
-
-    const myApps = apps.filter((a) => a.uid === me.email);
-    const total = myApps.reduce((n, a) => n + requirementsOf(a, scholarships).length, 0);
-    const valid = myApps.reduce((n, a) => n + Object.values(a.reqs).filter((q) => q.status === 'Valid').length, 0);
-
-    const titleOf = (app) => scholarships.find((s) => s.id === app.sid)?.title || 'the scholarship';
-
-    const unread = notifications.filter((n) => !n.read).length;
-
-    // the notifications are marked as read when the student leaves the Notifications tab
-    // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
-    const changeTab = async (key) => {
-        if (tab === 'notif' && key !== 'notif' && unread > 0) {
-            try { await call(`/student/${me.id}/notifications/read`, send('PUT', {})); } catch { /* not important */ }
-        }
-        setTab(key);
-        loadRemote();
-    }
-
-    // every action below is saved in the backend (BACKEND/routes/studentRoutes.js), then the lists are loaded again
-    // WBS 4.2.1 [Frontend] View available scholarships and create applications
-    const handleApply = async (scholarship) => {
-        if (!isOpen(scholarship)) {
-            showToast('This scholarship is closed.');
-            return;
-        }
-        if (myApps.some((a) => a.sid === scholarship.id)) return;
-
-        try {
-            await call(`/student/${me.id}/applications`, send('POST', { scholarship_id: scholarship.id }));
-        } catch (e) {
-            showToast(e.message);
-            return;
-        }
-
-        await loadRemote();
-        setTab('sub');
-        showToast('Draft started. Upload your documents.');
-    }
-
-    // WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
-    const handleUpload = async (app, req, file) => {
-        const problem = checkFile(file);
-        if (problem) {
-            showToast(problem);
-            return;
-        }
-
-        const wasRevise = app.reqs[req]?.status === 'Revise';
-
-        try {
-            const { type, data } = await readUpload(file);
-            await call(`/student/${me.id}/applications/${app.id}/documents`, send('PUT', {
-                requirement: req,
-                file_name: file.name,
-                file_type: type,
-                file_data: data,
-            }));
-        } catch (e) {
-            showToast(e.message);
-            return;
-        }
-
-        await loadRemote();
-        showToast(wasRevise ? `${req} changed. Sent back to the SK for review.` : `${req} uploaded`);
-    }
-
-    // WBS 4.3.2 [Frontend] Submit and resubmit scholarship applications
-    const handleSubmit = async (app) => {
-        if (!requirementsOf(app, scholarships).every((r) => app.reqs[r])) return;
-
-        try {
-            await call(`/student/${me.id}/applications/${app.id}/submit`, send('POST', {}));
-        } catch (e) {
-            showToast(e.message);
-            return;
-        }
-
-        await loadRemote();
-        notify([me.email], 'Submission received', `Your application for ${titleOf(app)} was submitted. The SK will review your documents.`);
-    }
-
-    const handleResubmit = async (app) => {
-        try {
-            await call(`/student/${me.id}/applications/${app.id}/resubmit`, send('POST', {}));
-        } catch (e) {
-            showToast(e.message);
-            return;
-        }
-
-        await loadRemote();
-        notify([me.email], 'Application resubmitted', `Your application for ${titleOf(app)} was resubmitted. The SK will review it again.`);
-    }
-
-    return (
-        <div className="page role-st">
-
-            <StudentHeader me={me} tab={tab} onTab={changeTab} onLogout={onLogout} unread={unread} />
-
-            {tab === 'home' && (
-                <StudentBanner me={me} hasApps={myApps.length > 0} valid={valid} total={total} />
-            )}
-
-            <main className="view enter" key={tab}>
-                {tab === 'home' && (
-                    <StudentHome me={me} apps={myApps} valid={valid} scholarships={scholarships} onTab={changeTab} />
-                )}
-                {tab === 'notif' && <StudentNotifications notifications={notifications} />}
-                {tab === 'sub' && (
-                    <StudentSubmission
-                        scholarships={scholarships}
-                        apps={myApps}
-                        onApply={handleApply}
-                        onUpload={handleUpload}
-                        onSubmit={handleSubmit}
-                        onResubmit={handleResubmit}
-                    />
-                )}
-            </main>
-
-        </div>
-    )
+function StudentPage({ me, onLogout }) {
+ return <div className="page role-st"><StudentHeader me={me} tab="home" onTab={() => {}} onLogout={onLogout} /><main className="view"><h2>Welcome, {me.name}</h2></main></div>;
 }
 
 // Ginagamit ng ibang page ang mga component na ito.

@@ -1,0 +1,226 @@
+/* STUDENT: login/register form, header, banner, requirements */
+
+.seg {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: var(--line);
+    padding: 4px;
+    border-radius: calc(var(--r)/1.5);
+    margin: 16px 0 4px;
+    gap: 4px;
+}
+
+.seg button {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.seg button.on {
+    background: var(--card);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+.role-st.login .lside {
+    background: linear-gradient(160deg,#1769ff,#4aa8ff 70%,#9ad7ff);
+}
+
+.role-st {
+    --bg: #eaf4ff;
+    --card: #fff;
+    --ink: #0d2147;
+    --mut: #5a6b8c;
+    --line: #d3e2f8;
+    --acc: #1769ff;
+    --onacc: #fff;
+    --r: 24px;
+    --in: #fff;
+    --okbg: #d6f5e6;
+    --ok: #12805c;
+    --badbg: #ffe0e3;
+    --warnbg: #fff0b8;
+    --warn: #85590a;
+    --infobg: #dcebff;
+    --info: #1769ff;
+    --shadow: 0 10px 30px rgba(23,105,255,.10);
+}
+
+.role-st .card:hover {
+    transform: translateY(-3px);
+}
+
+.drop {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1.5px dashed var(--acc);
+    color: var(--acc);
+    border-radius: calc(var(--r)/2);
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 6px;
+}
+
+.drop:hover {
+    background: var(--infobg);
+}
+
+.drop input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.st-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+}
+
+.st-top .brand {
+    color: #0b2a6f;
+}
+
+.st-top nav {
+    display: flex;
+    gap: 4px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+
+.st-top nav button {
+    border: 0;
+    background: transparent;
+    border-radius: 20px;
+    box-shadow: none;
+    white-space: nowrap;
+}
+
+.st-top nav button.on {
+    background: var(--acc);
+    color: #fff;
+    font-weight: 700;
+}
+
+.banner {
+    margin: 18px 22px 0;
+    max-width: 996px;
+    margin-inline: auto;
+    border-radius: 30px;
+    padding: 30px 34px;
+    background: linear-gradient(120deg,#1769ff,#4aa8ff);
+    color: #fff;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+    animation: rise .6s var(--ease) both;
+}
+
+.banner::before {
+    content: "";
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: var(--sun);
+    opacity: .35;
+    animation: float 7s ease-in-out infinite;
+}
+
+.banner h2 {
+    font-size: 34px;
+    font-weight: 800;
+    position: relative;
+}
+
+.banner p {
+    margin: 6px 0 0;
+    opacity: .9;
+    position: relative;
+}
+
+.ring {
+    position: relative;
+    width: 96px;
+    height: 96px;
+}
+
+.ring svg {
+    transform: rotate(-90deg);
+}
+
+.ring circle {
+    fill: none;
+    stroke-width: 9;
+    stroke-linecap: round;
+}
+
+.ring .t {
+    stroke: rgba(255,255,255,.3);
+}
+
+.ring .v {
+    stroke: var(--sun);
+    stroke-dasharray: 214;
+    stroke-dashoffset: 214;
+    transition: stroke-dashoffset 1.2s var(--ease);
+}
+
+.ring b {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font: 800 22px "Bricolage Grotesque",serif;
+}
+
+
+.thumb {
+    display: block;
+    width: 150px;
+    max-height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-top: 8px;
+    border: 1px solid var(--line);
+}
+
+.role-st .cmt {
+    color: #b3261e;
+}
+
+.req.rev {
+    background: var(--badbg);
+    border-radius: 14px;
+    padding: 14px;
+    margin: 8px 0;
+    border-top: 0;
+}
+
+.req.rev .cmt {
+    background: transparent;
+    padding: 6px 0 0;
+}
+
+.drop.hot {
+    background: var(--acc);
+    color: #fff;
+    border-style: solid;
+}
