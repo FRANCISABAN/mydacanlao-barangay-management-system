@@ -1,3 +1,130 @@
+// STUDENT - MGA PAGE
+// Magkakasama rito ang mga connected na bahagi ng page.
+
+import { useState } from 'react';
+import { StudentLogo, StudentSun, StudentSunMini, StudentHeader, StudentBanner, StudentHome, StudentNotifications } from '../../components/student/StudentHeaderAndHome';
+import { StudentSubmission } from '../../components/student/StudentApplicationForm';
+import { call, send, sendEmails, isOpen, isListed, isValidAddress, requirementsOf, checkFile, readUpload } from '../../components/student/studentFunctions';
+
+// Unang page bago mag-login.
+const STEPS = [
+    ["Create an account", "Register with your Gmail."],
+    ["Pick a scholarship", "Choose from open programs."],
+    ["Upload requirements", "Four documents, one by one."],
+    ["Get your result", "Updates arrive in the dashboard and Gmail."],
+];
+
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+function StudentLandingPage({ scholarships, studentCount, approvedCount, onLogin }) {
+    // the SK has its own site (sk.html)
+    const goToSK = () => { window.location.href = '/sk.html'; };
+    const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+
+    return (
+        <div className="land">
+
+            <header className="lnav">
+                <div className="brand">
+                    <StudentLogo />
+                    <div><b>SK Scholarship</b><small>Sangguniang Kabataan</small></div>
+                </div>
+                <div className="links">
+                    <button onClick={() => scrollTo('sch')}>Scholarships</button>
+                    <button onClick={() => scrollTo('how')}>How it works</button>
+                </div>
+                <div className="lbtn">
+                    <button onClick={() => onLogin()}>Student login</button>
+                    <button className="gold" onClick={() => goToSK()}>SK login</button>
+                </div>
+            </header>
+
+            <section className="lhero">
+                <StudentLogo className="big" />
+                <div className="ltxt">
+                    <span className="tag">Sangguniang Kabataan</span>
+                    <h1>Scholarship para sa kabataang may pangarap.</h1>
+                    <p>Mag-apply online, mag-upload ng requirements, at makatanggap ng update sa Gmail mo. Walang pila, walang paghihintay.</p>
+                    <div>
+                        <button className="p big" onClick={() => onLogin()}>Apply as student</button>
+                        <button className="ghost big" onClick={() => goToSK()}>I am an SK officer</button>
+                    </div>
+                </div>
+                <div className="floaters">
+                    <div className="fl f1"><i>✓</i><div><b>Report Card validated</b><small>Sent to your Gmail</small></div></div>
+                    <div className="fl f2"><i>★</i><div><b>New scholarship posted</b><small>Deadline Dec 15</small></div></div>
+                    <div className="fl f3"><i>!</i><div><b>Application approved</b><small>Congratulations!</small></div></div>
+                </div>
+            </section>
+
+            <div className="strip">
+               <div><b>{scholarships.filter(isOpen).length}</b><span>Open scholarships</span></div>
+                <div><b>{studentCount}</b><span>Registered students</span></div>
+                <div><b>{approvedCount}</b><span>Approved applicants</span></div>
+            </div>
+
+            <section className="sec">
+                <h2>Choose your portal</h2>
+                <p className="mut">Each role has its own workspace.</p>
+                <div className="portals">
+                    <div className="portal st">
+                        <h3>Student portal</h3>
+                        <p>Student Account and Scholarship Submission Management.</p>
+                        <ul>
+                            <li>Create your student account</li>
+                            <li>Upload scholarship requirements</li>
+                            <li>Get validation and acceptance updates in your Gmail</li>
+                        </ul>
+                        <button className="p big" onClick={() => onLogin()}>Student login</button>
+                    </div>
+                    <div className="portal sk">
+                        <h3>SK officer portal</h3>
+                        <p>Scholarship Management. No sign-up needed, just log in.</p>
+                        <ul>
+                            <li>Post scholarships and requirements</li>
+                            <li>Review documents with comments</li>
+                            <li>Approve or reject applications</li>
+                        </ul>
+                        <button className="p big" onClick={() => goToSK()}>SK login</button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="sec" id="sch" style={{ paddingTop: 20 }}>
+                <h2>Open scholarships</h2>
+                {scholarships.filter(isListed).map((s) => (
+                    <div key={s.id} className="scard">
+                        <div>
+                            <strong style={{ fontSize: 18 }}>{s.title}</strong><br />
+                            <span className="mut">{s.desc} · Deadline {s.deadline}</span>
+                        </div>
+                      {isOpen(s)
+    ? <button className="p" onClick={() => onLogin()}>Apply</button>
+    : <span className="chip Rejected">Closed</span>}
+                    </div>
+                ))}
+               {!scholarships.filter(isListed).length && <p className="mut">No scholarships open yet.</p>}
+            </section>
+
+            <section className="sec" id="how" style={{ paddingTop: 20 }}>
+                <h2>How it works</h2>
+                <div className="steps">
+                    {STEPS.map(([title, text]) => (
+                        <div key={title} className="step">
+                            <h3 style={{ fontSize: 20, marginBottom: 6 }}>{title}</h3>
+                            <span className="mut">{text}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <footer className="foot">Sangguniang Kabataan Scholarship Portal</footer>
+
+        </div>
+    )
+}
+
+// Login at sign up ng student.
+// Student login + new student account. (SK login is in SKLoginPage.jsx)
 // WBS 4.1.1 [Frontend] Implement student account registration
 // WBS 4.1.2 [Frontend] Implement student login and logout
 function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
@@ -207,3 +334,40 @@ function StudentLoginPage({ onBack, onLoggedIn, showToast }) {
 }
 
 // Main page para mag-apply at mag-upload.
+// WBS 4.2.1 [Frontend] View available scholarships and create applications
+// WBS 4.3.1 [Frontend] Upload and manage scholarship requirements
+// WBS 4.3.2 [Frontend] Submit and resubmit scholarship applications
+// WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
+// WBS 4.4.2 [Frontend] Track scholarship application and requirement statuses
+function StudentPage({ me, scholarships, apps, notifications, notify, showToast, loadRemote, onLogout }) {
+    const [tab, setTab] = useState('home');
+
+    const myApps = apps.filter((a) => a.uid === me.email);
+    const total = myApps.reduce((n, a) => n + requirementsOf(a, scholarships).length, 0);
+    const valid = myApps.reduce((n, a) => n + Object.values(a.reqs).filter((q) => q.status === 'Valid').length, 0);
+
+    const titleOf = (app) => scholarships.find((s) => s.id === app.sid)?.title || 'the scholarship';
+
+    const unread = notifications.filter((n) => !n.read).length;
+
+    // the notifications are marked as read when the student leaves the Notifications tab
+    // WBS 4.2.1 [Frontend] View available scholarships and create applications
+    const handleApply = async (scholarship) => {
+        if (!isOpen(scholarship)) {
+            showToast('This scholarship is closed.');
+            return;
+        }
+        if (myApps.some((a) => a.sid === scholarship.id)) return;
+
+        try {
+            await call(`/student/${me.id}/applications`, send('POST', { scholarship_id: scholarship.id }));
+        } catch (e) {
+            showToast(e.message);
+            return;
+        }
+
+        await loadRemote();
+        setTab('sub');
+        showToast('Draft started. Upload your documents.');
+    }
+
