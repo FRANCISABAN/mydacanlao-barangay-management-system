@@ -24,3 +24,16 @@ const SKStatCard = ({ value, label, color, icon }) => {
     </div>
   )
 }
+
+// Maliit na message na kusang nawawala.
+// WBS 3.1.5 [Frontend] Manage in-system and email notifications
+const SKToast = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, Math.max(2600, message.text.length * 60));
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  return (
+    <div className="toast" role="status">{message.text}</div>
+  )
+}

@@ -12,6 +12,37 @@
         return true;
     }
 
+        // The student gets ONE email, only when every document of the application has been reviewed
+    // (each one is either "Valid" or "Needs revision"). Marking a single document sends nothing.
+    // `newStatus` and `newNote` are the document that was just saved (the app on screen is not updated yet).
+    // WBS 3.1.5 [Frontend] Manage in-system and email notifications
+    const emailWhenReviewed = (app, req, newStatus, newNote) => {
+        const list = requirementsOf(app, scholarships).map((r) => {
+            const doc = r === req ? { status: newStatus, note: newNote } : app.reqs[r];
+            return { name: r, status: doc?.status, note: doc?.note || '' };
+        });
+
+        // still waiting for the SK to review something (or the student has not uploaded it)
+        if (list.some((d) => d.status !== 'Valid' && d.status !== 'Revise')) {
+            showToast('Saved. The student is emailed once every document is reviewed.');
+            return;
+        }
+
+        const valid = list.filter((d) => d.status === 'Valid');
+        const revise = list.filter((d) => d.status === 'Revise');
+
+        if (!revise.length) {
+            notify([app.uid], 'All your documents are validated', `Every document for ${titleOf(app)} passed validation:\n- ${valid.map((d) => d.name).join('\n- ')}`);
+            return;
+        }
+
+        let text = `The SK finished reviewing your documents for ${titleOf(app)}.`;
+        if (valid.length) text += `\n\nValid:\n- ${valid.map((d) => d.name).join('\n- ')}`;
+        text += `\n\nNeeds revision:\n- ${revise.map((d) => d.note ? `${d.name} (${d.note})` : d.name).join('\n- ')}`;
+        text += '\n\nPlease log in and upload a corrected copy of each document that needs revision.';
+        notify([app.uid], 'Your documents were reviewed', text);
+    }
+
     // WBS 3.1.2 [Frontend] Review and validate scholarship requirements
     const handleValid = async (app, req) => {
         if (!await saveReview(`/sk/applications/${app.id}/documents`, { requirement: req, status: 'Valid' })) return;
