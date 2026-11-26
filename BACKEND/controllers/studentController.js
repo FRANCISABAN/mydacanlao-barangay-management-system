@@ -44,3 +44,78 @@ export const createAccount = async (req, res) => {
     }
 }
 
+// WBS 4.1.2 [Backend] Implement student login and logout
+export const login = async (req, res) => {
+    const {email, password} = req.body;
+    const student = {email, password};
+
+    try{
+        const result = await studentServices.login(student);
+        res.status(200).json({
+            success: true,
+            message: result,
+            token: startSession(result.id)
+        });
+    }catch(e){
+        res.status(e.statusCode || 500).json({
+            error: e.message || "Internal Server Error"
+        });
+    }
+}
+
+export const editStudent = async (req, res) => {
+    const {name, address} = req.body;
+    const { id } = req.params;
+    const student = {id, name, address};
+
+    try {
+        const updatedStudent = await studentServices.updateStudent(student);
+        res.status(200).json({
+            success: true,
+            message: updatedStudent
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            success: false,
+            error: e.message
+        });
+    }
+}
+
+//delete
+export const deleteStudent = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedStudent = await studentServices.deleteStudent(parseInt(id));
+        res.status(200).json({
+            success: true,
+            message: deletedStudent
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(e.statusCode || 500).json({
+            success: false,
+            error: e.message
+        });
+    }
+}
+
+
+/* ===== applications and uploaded documents of the student ===== */
+const fail = (res, e) => {
+    console.log(e);
+    res.status(e.statusCode || 500).json({
+        success: false,
+        error: e.message || "Internal Server Error"
+    });
+}
+
+// WBS 4.1.2 [Backend] Implement student login and logout
+// Logout: the token of the student stops working.
+export const logout = (req, res) => {
+    endSession(tokenOf(req));
+    res.status(200).json({ success: true });
+}
+
