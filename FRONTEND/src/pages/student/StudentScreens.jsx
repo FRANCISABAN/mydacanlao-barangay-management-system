@@ -351,6 +351,16 @@ function StudentPage({ me, scholarships, apps, notifications, notify, showToast,
     const unread = notifications.filter((n) => !n.read).length;
 
     // the notifications are marked as read when the student leaves the Notifications tab
+    // WBS 4.4.1 [Frontend] Display scholarship notifications and email updates
+    const changeTab = async (key) => {
+        if (tab === 'notif' && key !== 'notif' && unread > 0) {
+            try { await call(`/student/${me.id}/notifications/read`, send('PUT', {})); } catch { /* not important */ }
+        }
+        setTab(key);
+        loadRemote();
+    }
+
+    // every action below is saved in the backend (BACKEND/routes/studentRoutes.js), then the lists are loaded again
     // WBS 4.2.1 [Frontend] View available scholarships and create applications
     const handleApply = async (scholarship) => {
         if (!isOpen(scholarship)) {

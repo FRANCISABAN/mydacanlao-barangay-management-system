@@ -119,3 +119,23 @@ export const saveDocument = async (doc) => {
   );
 };
 
+// WBS 4.4.1 [Backend] Display scholarship notifications and email updates
+// ---------- in-system notifications ----------
+export const insertNotification = async (studentId, subject, message) => {
+  await pool.query(
+    'INSERT INTO notification (student_id, subject, message, created_at) VALUES (?, ?, ?, ?)',
+    [studentId, subject, message, Date.now()]
+  );
+};
+
+export const fetchNotifications = async (studentId) => {
+  const [rows] = await pool.query(
+    'SELECT id, subject, message, is_read, created_at FROM notification WHERE student_id = ? ORDER BY id DESC LIMIT 100',
+    [studentId]
+  );
+  return rows;
+};
+
+export const markNotificationsRead = async (studentId) => {
+  await pool.query('UPDATE notification SET is_read = 1 WHERE student_id = ?', [studentId]);
+};

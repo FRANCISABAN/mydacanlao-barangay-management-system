@@ -334,3 +334,16 @@ export const resubmitApplication = async (studentId, applicationId) => {
 }
 
 
+// WBS 4.4.1 [Backend] Display scholarship notifications and email updates
+/* ===== in-system notifications of one student ===== */
+export const fetchNotifications = async (studentId) => {
+    const id = await mustHaveStudent(studentId);
+    const rows = await studentModels.fetchNotifications(id);
+    return rows.map((n) => ({ id: n.id, subject: n.subject, text: n.message, read: !!n.is_read, at: Number(n.created_at) }));
+}
+
+export const readNotifications = async (studentId) => {
+    const id = await mustHaveStudent(studentId);
+    await studentModels.markNotificationsRead(id);
+    return { ok: true };
+}
