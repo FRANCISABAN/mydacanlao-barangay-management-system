@@ -76,6 +76,16 @@ export const countApprovedApplications = async () => {
   return rows[0].total;
 };
 
+export const findApplicationById = async (id) => {
+  const [rows] = await pool.query('SELECT * FROM application WHERE id = ?', [id]);
+  return rows;
+};
+
+export const findDocument = async (applicationId, requirement) => {
+  const [rows] = await pool.query('SELECT id, status FROM application_document WHERE application_id = ? AND requirement = ?', [applicationId, requirement]);
+  return rows;
+};
+
 // the name of the saved file, only used when the SK opens a PDF
 // WBS 3.1.2 [Backend] Review and validate scholarship requirements
 export const findDocumentFile = async (id) => {

@@ -1,0 +1,337 @@
+/* SK: blue theme, logo, banner, background */
+
+/* ===== BAGONG SK DESIGN ===== */
+/* Parehong kulay ng Student: blue, light blue at yellow. */
+
+/* Buong login screen, kahit maliit o malaki ang monitor */
+.role-sk.login {
+    min-height: 100vh;
+    min-height: 100dvh;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    background: linear-gradient(125deg, #eaf4ff, #fff0b0);
+}
+.role-sk.login .lside {
+    min-height: 100%;
+    background: linear-gradient(145deg, #2169f5, #58b6ff);
+    color: white;
+    padding: 52px;
+}
+.role-sk.login .lside h1 {
+    max-width: 15ch;
+}
+.role-sk.login .lform {
+    min-height: 100%;
+    padding: 50px 32px;
+}
+.role-sk.login .fcard {
+    max-width: 450px;
+}
+.role-sk.login .fcard h2 {
+    color: #10244a;
+}
+.role-sk.login .mut,
+.role-sk.login label {
+    color: #5e7193;
+}
+.role-sk.login input {
+    background: #fff;
+    border-color: #d5e2fa;
+    color: #10244a;
+}
+.role-sk.login .p {
+    background: linear-gradient(100deg, #2169ff, #4ba5ff);
+    color: white;
+}
+/* Dashboard - light blue background at white cards */
+.role-sk {
+    --bg: #eaf3ff;
+    --card: #fff;
+    --ink: #10244a;
+    --mut: #64799e;
+    --line: #d8e5fb;
+    --acc: #2169f5;
+    --onacc: #fff;
+    --in: #f0f6ff;
+    --okbg: #ddf8ee;
+    --ok: #087b57;
+    --badbg: #ffe5e8;
+    --warnbg: #fff4c9;
+    --warn: #946b00;
+    --infobg: #dceaff;
+    --info: #2169f5;
+    --shadow: 0 8px 30px rgba(29,86,167,.08);
+}
+.role-sk.page {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #eaf4ff, #f4f9ff 62%, #fff1bb);
+}
+.role-sk.page::before {
+    background: radial-gradient(circle at 90% 0%, rgba(255,217,93,.28), transparent 38%);
+}
+.role-sk .sk-side {
+    background: #fff;
+    color: #10244a;
+    border-right: 1px solid #d8e5fb;
+    box-shadow: 5px 0 25px rgba(34,93,179,.05);
+}
+.role-sk .sk-side .brand,
+.role-sk .sk-side .who {
+    color: #10244a;
+}
+.role-sk .nav {
+    color: #64799e;
+}
+.role-sk .nav.on {
+    background: #e2edff;
+    color: #2169f5;
+}
+.role-sk .who {
+    background: #f3f8ff;
+    border-color: #d8e5fb;
+}
+.role-sk .who button {
+    color: #2169f5;
+    border-color: #c9dcfa;
+}
+.role-sk .sk-head h2 {
+    background: none;
+    color: #10244a;
+    -webkit-text-fill-color: #10244a;
+}
+.role-sk .p {
+    background: linear-gradient(100deg, #2169ff, #4ba5ff);
+    color: #fff;
+    box-shadow: 0 7px 20px rgba(33,105,245,.16);
+}
+.role-sk .card {
+    background: #fff;
+    color: #10244a;
+    border: 1px solid #d8e5fb;
+    box-shadow: 0 8px 24px rgba(29,86,167,.06);
+}
+.role-sk input,
+.role-sk textarea,
+.role-sk select {
+    background: #f1f6ff;
+    color: #10244a;
+    border-color: #d2e1fa;
+}
+.role-sk .pill {
+    background: #fff;
+    border-color: #d8e5fb;
+    color: #4f6488;
+}
+.role-sk .pill b {
+    background: #e5eeff;
+    color: #1d4fa8;
+}
+.role-sk .pill.on {
+    background: #ffcf4d;
+    color: #10244a;
+}
+.role-sk .tbl,
+.role-sk table {
+    color: #10244a;
+}
+.role-sk thead th {
+    color: #63789a;
+}
+.role-sk tbody tr:hover td {
+    background: #eff6ff;
+}
+
+/* Sa cellphone, isang column ang login */
+@media (max-width: 860px) {
+    .role-sk.login {
+        grid-template-columns: 1fr;
+    }
+    .role-sk.login .lside {
+        min-height: 260px;
+        padding: 90px 26px 32px;
+    }
+    .role-sk.login .lform {
+        min-height: auto;
+        padding: 38px 20px 60px;
+    }
+}
+
+
+/* ===== SK AYOS NG DESIGN: logo, blue banner, at mababasang text ===== */
+
+/* --- Logo ng SK (pumalit sa araw) --- */
+.sklogo {
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+.brand .sklogo {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,.85);
+}
+
+/* Malaking logo sa kaliwang bahagi ng SK login (nasa gitna, may puting ring at anino) */
+.role-sk.login .lside .sklogo.big {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    width: min(62vh, 400px);
+    translate: -50% -50%;
+    box-shadow: 0 0 0 10px rgba(255,255,255,.35), 0 28px 70px rgba(6,30,100,.45);
+    animation: pop .6s var(--ease) both;
+}
+
+/* --- Blue banner sa taas ng dashboard --- */
+.role-sk .skbanner {
+    position: relative;
+    overflow: hidden;
+    max-width: 992px;
+    width: calc(100% - 48px);
+    margin: 24px auto 0;
+    min-height: 130px;
+    padding: 34px 40px;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    background: linear-gradient(120deg, #0b3fd1, #1769ff 45%, #4aa8ff);
+    box-shadow: 0 22px 46px rgba(23,105,255,.30);
+}
+.role-sk .skbanner .bt {
+    position: relative;
+    z-index: 1;
+}
+.role-sk .skbanner small {
+    display: block;
+    margin-bottom: 8px;
+    opacity: .9;
+    font-weight: 500;
+}
+.role-sk .skbanner h2 {
+    font-size: clamp(26px, 3.6vw, 40px);
+    font-weight: 800;
+    color: #fff;
+}
+
+/* --- Blue na sidebar --- */
+.role-sk .sk-side {
+    background: linear-gradient(180deg, #0b3fd1, #1769ff 60%, #3d92ff);
+    border-right: 0;
+    box-shadow: 6px 0 30px rgba(23,105,255,.25);
+}
+.role-sk .sk-side .brand,
+.role-sk .sk-side .brand b {
+    color: #fff;
+}
+.role-sk .sk-side .brand small {
+    color: rgba(255,255,255,.8);
+    opacity: 1;
+}
+.role-sk .sk-side .nav {
+    color: rgba(255,255,255,.85);
+}
+.role-sk .sk-side .nav:hover {
+    background: rgba(255,255,255,.16);
+    color: #fff;
+}
+.role-sk .sk-side .nav.on {
+    background: #fff;
+    color: #1769ff;
+}
+.role-sk .sk-side .who {
+    background: rgba(255,255,255,.14);
+    border-color: rgba(255,255,255,.3);
+    color: #fff;
+}
+.role-sk .sk-side .who .mut {
+    color: rgba(255,255,255,.82);
+}
+.role-sk .sk-side .who button {
+    background: #fff;
+    color: #1769ff;
+    border-color: #fff;
+}
+
+/* --- Mababasang table (dati ay itim ang rows kaya hindi makita ang pangalan) --- */
+.role-sk td {
+    background: #fff;
+    color: #10244a;
+    border-top: 1px solid #d8e5fb;
+    border-bottom: 1px solid #d8e5fb;
+}
+.role-sk td:first-child {
+    border-left: 1px solid #d8e5fb;
+}
+.role-sk td:last-child {
+    border-right: 1px solid #d8e5fb;
+}
+.role-sk tbody tr:hover td {
+    background: #eef5ff;
+}
+.role-sk td .mut {
+    color: #64799e;
+}
+
+/* --- Iba pang dark na natira sa light design --- */
+.role-sk .drawer {
+    background: #f4f8ff;
+    color: #10244a;
+    box-shadow: -20px 0 60px rgba(16,36,74,.25);
+}
+.scrim {
+    background: rgba(16,36,74,.45);
+}
+.role-sk .chip.Rejected,
+.role-sk .chip.Revise,
+.role-sk .cmt,
+.role-sk .ft.pdf {
+    color: #c4122a;
+}
+.role-sk .mini {
+    background: #dbe7fb;
+}
+
+/* --- Cellphone --- */
+@media (max-width: 860px) {
+    /* mas maliit na logo sa login para hindi matakpan ang heading */
+    .role-sk.login .lside .sklogo.big {
+        top: 27%;
+        left: 84%;
+        width: 108px;
+        box-shadow: 0 0 0 6px rgba(255,255,255,.35), 0 14px 34px rgba(6,30,100,.4);
+    }
+    .role-sk .skbanner {
+        width: calc(100% - 28px);
+        padding: 26px 22px;
+    }
+}
+
+
+/* ===== Logo ng SK sa background ng dashboard (medyo blurred pero kita) ===== */
+/* Nasa likod ng mga card at sidebar, nasa gitna ng lugar sa kanan ng sidebar. Hindi ito sakop ng login. */
+.role-sk.page:not(.login)::after {
+    content: "";
+    position: fixed;
+    top: 54%;
+    left: calc(50% + 120px);
+    width: min(74vh, 640px);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: url('../../assets/sk-logo.png') center / cover no-repeat;
+    filter: blur(5px) saturate(1.1);
+    opacity: .26;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@media (max-width: 860px) {
+    /* sa cellphone, nasa gitna ng screen dahil nasa taas ang menu */
+    .role-sk.page:not(.login)::after {
+        left: 50%;
+        width: min(80vw, 420px);
+    }
+}

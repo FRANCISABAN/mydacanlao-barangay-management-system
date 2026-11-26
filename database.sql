@@ -59,3 +59,13 @@ CREATE TABLE IF NOT EXISTS application_document (
   UNIQUE KEY one_file_per_requirement (application_id, requirement),
   FOREIGN KEY (application_id) REFERENCES application(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS notification (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  subject    VARCHAR(200) NOT NULL,
+  message    TEXT NOT NULL,
+  is_read    TINYINT(1) NOT NULL DEFAULT 0,          -- 0 = new, 1 = already opened
+  created_at BIGINT NOT NULL,                        -- time in milliseconds
+  FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
+);

@@ -47,32 +47,8 @@ export const sendEmails = async (messages) => {
     }
 }
 
-// Hinahanap ang student gamit ang email.
-export const findStudent = (students, email) => {
-    return students.find((s) => String(s.email).toLowerCase() === String(email).toLowerCase());
-}
-
-// the student of an application (falls back to the email if the backend does not know the student)
-// Kinukuha ang detalye ng student.
-export const studentOf = (students, email) => {
-    return findStudent(students, email) || { name: String(email).split('@')[0], email, address: '' };
-}
-
-// --- skCommonNotify ---
-// Emails students through the BACKEND. Used by the SK site.
-
-// Gumagawa at nagpapadala ng email notification.
-// WBS 3.1.5 [Frontend] Manage in-system and email notifications
-export const notifyStudents = async (students, emails, subject, text, showToast) => {
-    const messages = emails.map((to) => ({ to, name: studentOf(students, to).name, subject, text }));
-    if (!messages.length) return;
-
-    showToast('Saved. Sending email...');
-    const result = await sendEmails(messages);
-    showToast(result.ok
-        ? `Email sent to ${messages.length} student${messages.length > 1 ? 's' : ''}.`
-        : `Saved, but the email was not sent. ${result.error}`);
-}
+// --- skCommonHelpers ---
+// Shared helpers of the SK site only (no React in here). The other site has its own copy in common/student/.
 
 export const DEFAULT_REQS = ['Barangay Clearance', 'Report Card', 'Certificate of Enrollment', 'Proof of Income'];
 
@@ -95,6 +71,29 @@ export const toScholarship = (row) => ({
     reqs: Array.isArray(row.reqs) && row.reqs.length ? row.reqs : DEFAULT_REQS.slice(),
 });
 
+/* ===== people ===== */
+// Hinahanap ang student gamit ang email.
+export const findStudent = (students, email) => {
+    return students.find((s) => String(s.email).toLowerCase() === String(email).toLowerCase());
+}
+
+// the student of an application (falls back to the email if the backend does not know the student)
+// Kinukuha ang detalye ng student.
+export const studentOf = (students, email) => {
+    return findStudent(students, email) || { name: String(email).split('@')[0], email, address: '' };
+}
+
+// Bumabati ayon sa oras.
+export const greeting = () => {
+    const hour = new Date().getHours();
+    return hour < 12 ? 'Magandang umaga' : hour < 18 ? 'Magandang hapon' : 'Magandang gabi';
+}
+
+// Ginagawang initials ang pangalan.
+export const initials = (name) => {
+    return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
 // --- skFunctions ---
 // Helpers used only by the SK side (no React in here).
 // trimmed, no empty rows, no duplicates
@@ -109,4 +108,20 @@ const SUGGESTED_REQS = ['Barangay Indigency', 'Birth Certificate', 'Valid ID', '
 export const nextSuggestion = (current) => {
     const have = current.map((x) => x.trim().toLowerCase());
     return SUGGESTED_REQS.find((x) => !have.includes(x.toLowerCase())) || '';
+}
+
+// --- skCommonNotify ---
+// Emails students through the BACKEND. Used by the SK site.
+
+// Gumagawa at nagpapadala ng email notification.
+// WBS 3.1.5 [Frontend] Manage in-system and email notifications
+export const notifyStudents = async (students, emails, subject, text, showToast) => {
+    const messages = emails.map((to) => ({ to, name: studentOf(students, to).name, subject, text }));
+    if (!messages.length) return;
+
+    showToast('Saved. Sending email...');
+    const result = await sendEmails(messages);
+    showToast(result.ok
+        ? `Email sent to ${messages.length} student${messages.length > 1 ? 's' : ''}.`
+        : `Saved, but the email was not sent. ${result.error}`);
 }
