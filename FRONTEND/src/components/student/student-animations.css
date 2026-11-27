@@ -1,0 +1,193 @@
+/* STUDENT: animation, toast */
+
+@keyframes spin {
+    to {
+        rotate: 360deg;
+    }
+}
+
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+
+@keyframes pop {
+    from {
+        transform: scale(.6);
+        opacity: 0;
+    }
+}
+
+
+@keyframes fade {
+    from {
+        opacity: 0;
+    }
+}
+
+
+@keyframes float {
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+
+@keyframes drop {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.97);
+    }
+}
+
+
+@media (max-width:860px) {
+    .login {
+        grid-template-columns: 1fr;
+    }
+
+    .lside {
+        min-height: 240px;
+        padding: 28px;
+    }
+
+    .view {
+        padding: 16px 14px;
+    }
+}
+
+
+@media (prefers-reduced-motion:reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+
+@keyframes drift {
+    to {
+        transform: translate(-90px,70px) scale(1.15);
+    }
+}
+
+
+@keyframes grow {
+    from {
+        width: 0;
+    }
+}
+
+
+@keyframes pdot {
+    50% {
+        opacity: .35;
+    }
+}
+
+
+@keyframes tbar {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0;
+    }
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px 16px;
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 20px 44px rgba(0,0,0,.35);
+    overflow: hidden;
+}
+
+.toast::before {
+    content: "";
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #2ee59d;
+    box-shadow: 0 0 0 4px rgba(46,229,157,.25);
+}
+
+.toast::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--sun);
+    animation: tbar 2.6s linear forwards;
+}
+
+.chip::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 7px;
+    vertical-align: 1px;
+}
+
+.rl .chip::before {
+    display: none;
+}
+
+.chip.Pending::before, .chip.Uploaded::before, .chip.Under::before {
+    animation: pdot 1.4s infinite;
+}
+
+.rd {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.rd>div {
+    min-width: 0;
+}
+
+.ft {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 52px;
+    border-radius: 12px;
+    background: var(--infobg);
+    color: var(--info);
+    font: 800 11px Figtree,sans-serif;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.ft::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    background: var(--bg);
+    border-bottom-left-radius: 9px;
+    opacity: .8;
+}
+
+.ft.pdf {
+    background: var(--badbg);
+    color: #ff6b7a;
+}

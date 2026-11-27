@@ -6,9 +6,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        index: 'index.html',
-        sk: 'sk.html'
-      }
+  index: 'index.html',
+  student: 'student.html',
+  sk: 'sk.html'
+}   
     },
   },
   server: {
