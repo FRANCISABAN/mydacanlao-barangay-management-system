@@ -27,9 +27,28 @@ const isIndigency = (type) => /indigency/i.test(String(type ?? ''))
 
 const fileUrl = (id, name) => `/api/certification-requests/${id}/requirements/${encodeURIComponent(name)}/file`
 
-/* ---------- 1.1.1 List ---------- */
-export async function listRequests() {
-  const rows = await CertificationRequest.findAll({ order: [['submittedAt', 'DESC']] })
+/* ---------- 1.1.1 / 1.1.2 List, search, filter ---------- */
+export async function listRequests({ q, status, type, from, to } = {}) {
+  const where = {}
+  if (q?.trim()) {
+    const like = { [Op.like]: likePattern(q.trim()) }
+    where[Op.or] = [{ applicantName: like }, { id: like }]
+  }
+  if (status) {
+    if (!STATUS_KEYS.includes(status)) throw new ApiError('Unknown status filter.', 422)
+    where.status = status
+  }
+  if (type) {
+    if (!CERT_TYPES[type]) throw new ApiError('Unknown certification type.', 422)
+    where.type = type
+  }
+  if ((from && !isIsoDate(from)) || (to && !isIsoDate(to))) throw new ApiError('Dates must use the YYYY-MM-DD format.', 422)
+  if (from || to) {
+    where.submittedAt = {}
+    if (from) where.submittedAt[Op.gte] = dayStart(from)
+    if (to) where.submittedAt[Op.lte] = dayEnd(to)
+  }
+  const rows = await CertificationRequest.findAll({ where, order: [['submittedAt', 'DESC']] })
   return rows.map(brief)
 }
 
