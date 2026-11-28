@@ -37,12 +37,12 @@ export default function RequestDetail({ id }) {
       />
       <div className="detail-grid">
         <div className="detail-main">
-          <ApplicantReview req={req} />
-          <Requirements req={req} onChanged={reload} />
-          <Remarks req={req} onChanged={reload} />
+          <p>Applicant: {req.submitted.fullName} · Submitted: {fmtDate(req.submittedAt)}</p>
+
+
         </div>
         <aside className="detail-side">
-          <StatusPanel req={req} problems={problems} validCount={validCount} onChanged={reload} />
+
         </aside>
       </div>
     </>
@@ -104,7 +104,7 @@ function ApplicantReview({ req }) {
 /* 1.2.2 / 1.2.3 Requirements and validation */
 function Requirements({ req, onChanged }) {
   const { can } = useAuth()
-  const editable = can('cert:manage') && req.status === 'under_review'
+  const editable = false
   return (
     <section className="panel" aria-labelledby="req-h">
       <div className="panel-head"><h2 id="req-h">Submitted requirements</h2></div>

@@ -1,27 +1,19 @@
 import { useEffect } from 'react'
-import { BARANGAY } from '../../lib/staff/constants.js'
-import { logout, useAuth } from '../../lib/staff/auth.js'
+import { useAuth } from '../../lib/staff/auth.js'
 import { go, parseHash, useHash } from '../../lib/staff/router.js'
 import { attachDesignEffects } from '../../lib/staff/designEffects.js'
 import { Icon, Link, Toaster } from '../../components/staff/ui.jsx'
+import SecretarySidebar from '../../components/staff/secretary/SecretarySidebar.jsx'
 import Landing from './Landing.jsx'
 import Login from './Login.jsx'
 import ResidentRequest from './ResidentRequest.jsx'
-import Dashboard from '../secretary/Dashboard.jsx'
-import BhwDashboard from '../bhw/BhwDashboard.jsx'
 import Requests from '../secretary/Requests.jsx'
 import RequestDetail from '../secretary/RequestDetail.jsx'
-import Residents from './Residents.jsx'
-import { ResidentEdit, ResidentRegister } from '../bhw/ResidentForm.jsx'
-import { HouseholdDetail, HouseholdEdit, HouseholdRegister, Households } from './Households.jsx'
 
 /* 1.4.2 / 2.3.2 Show only the navigation allowed for the signed-in account (Secretary or BHW).
    `perm` can be a list: the account needs any one of them. */
 const NAV = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', perm: ['cert:view', 'summary:view'] },
   { to: '/requests', label: 'Certification requests', icon: 'file', perm: 'cert:view' },
-  { to: '/residents', label: 'Residents', icon: 'users', perm: 'resident:view' },
-  { to: '/households', label: 'Households', icon: 'home', perm: 'household:view' },
 ]
 
 // Is the account allowed? `perm` is one permission or a list (any one is enough).
@@ -33,19 +25,11 @@ function match(path, can) {
   if (a === 'login') return { open: true, el: <Login /> }
   if (a === 'request') return { open: true, el: <ResidentRequest key={path + window.location.hash} /> }
   // The same address shows the dashboard that fits the role.
-  if (a === 'dashboard') return can('cert:view') ? { perm: 'cert:view', el: <Dashboard /> } : { perm: 'summary:view', el: <BhwDashboard /> }
   if (a === 'requests') return b ? { perm: 'cert:view', el: <RequestDetail id={b} key={b} /> } : { perm: 'cert:view', el: <Requests /> }
   if (a === 'residents') {
-    if (!b) return { perm: 'resident:view', el: <Residents key={window.location.hash} /> }
-    if (b === 'new') return { perm: 'resident:create', el: <ResidentRegister key={window.location.hash} /> }
-    if (c === 'edit') return { perm: 'resident:edit', el: <ResidentEdit id={b} key={b} /> }
     return null
   }
   if (a === 'households') {
-    if (!b) return { perm: 'household:view', el: <Households /> }
-    if (b === 'new') return { perm: 'household:create', el: <HouseholdRegister /> }
-    if (c === 'edit') return { perm: 'household:edit', el: <HouseholdEdit id={b} key={b} /> }
-    return { perm: 'household:view', el: <HouseholdDetail id={b} key={b} /> }
   }
   return null
 }
@@ -85,8 +69,6 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [hash])
 
-  const active = (n) => path === n.to || path.startsWith(n.to + '/')
-
   if (route?.open) {
     return (
       <>
@@ -99,27 +81,7 @@ export default function App() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="seal" aria-hidden="true">MD</span>
-          <div>
-            <strong>MyDacanlao</strong>
-            <span>{BARANGAY}</span>
-          </div>
-        </div>
-        <nav aria-label="Main">
-          {NAV.filter((n) => allowed(auth.can, n.perm)).map((n) => (
-            <Link key={n.to} to={n.to} className="nav-link" aria-current={active(n) ? 'page' : undefined}>
-              <Icon name={n.icon} /> {n.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="me">
-          <strong>{auth.name}</strong>
-          <span>{auth.label}</span>
-          <button className="btn small out" onClick={() => { logout(); go('/') }}>Log out</button>
-        </div>
-      </aside>
+      <SecretarySidebar auth={auth} path={path} nav={NAV} allowed={allowed} />
       <main className="main">
         {!route ? (
           <Restricted title="Page not found" text="This page does not exist." />
